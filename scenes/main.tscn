@@ -1,0 +1,11 @@
+[gd_scene load_steps=3 format=3 uid="uid://b70onn202o232"]
+
+[ext_resource type="Script" uid="uid://bn5mtotml51bv" path="res://scripts/Main.cs" id="1_o5qli"]
+
+[sub_resource type="CanvasItemMaterial" id="CanvasItemMaterial_o5qli"]
+
+[node name="Main" type="Node2D"]
+material = SubResource("CanvasItemMaterial_o5qli")
+position = Vector2(29, 0)
+script = ExtResource("1_o5qli")
+disableInputDelay = 0.15
