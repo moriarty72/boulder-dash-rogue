@@ -1,7 +1,7 @@
 using Godot;
 using System;
 
-public partial class Rockford : Node2D
+public partial class Rockford : Area2D
 {
     public enum MoveDirection
     {
@@ -20,7 +20,7 @@ public partial class Rockford : Node2D
 
     public override void _Ready()
     {
-        currentPosition = new(32.0f, 32.0f);
+        currentPosition = new(0.0f, 0.0f);
         GlobalPosition = currentPosition;
 
         animatedSprite2D = GetNode<AnimatedSprite2D>("AnimatedSprite2D");
@@ -52,16 +52,16 @@ public partial class Rockford : Node2D
     public void Move(MoveDirection moveDirection)
     {
         if (moveDirection == MoveDirection.up)
-            currentPosition.Y -= 32;
+            currentPosition.Y -= 64;
 
         if (moveDirection == MoveDirection.left)
-            currentPosition.X -= 32;
+            currentPosition.X -= 64;
 
         if (moveDirection == MoveDirection.right)
-            currentPosition.X += 32;
+            currentPosition.X += 64;
 
         if (moveDirection == MoveDirection.down)
-            currentPosition.Y += 32;
+            currentPosition.Y += 64;
 
         PlayAnimation(moveDirection);
         GlobalPosition = currentPosition;
@@ -72,4 +72,8 @@ public partial class Rockford : Node2D
         base._PhysicsProcess(delta);
     }
 
+    private void _on_player_body_entered(Node2D body)
+    {
+        GD.Print("Rockford collide");
+    }
 }

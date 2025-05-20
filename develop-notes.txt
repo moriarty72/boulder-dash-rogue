@@ -1,3 +1,5 @@
 OK - setup git repo
 OK - initialize assets
-- test rockford animation and move
+OK - test rockford animation and move
+- test mud and rockford collision
+- refactor rockford move code

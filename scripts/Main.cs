@@ -4,11 +4,22 @@ using System.Collections.Generic;
 
 public partial class Main : Node
 {
+    // window res: 1280x768
+    // sprite size: 64x64
+    // grid size: 20x12
+    public const int GRID_WIDTH = 20;
+    public const int GRID_HEIGHT = 12;
+
+    public const int SPRITE_WIDTH = 64;
+    public const int SPRITE_HEIGHT = 64;
+
     [Export]
     public double disableInputDelay = 1.0;
 
     private Rockford player;
+
     private PackedScene playerScene = GD.Load<PackedScene>("res://scenes//rockford.tscn");
+    private PackedScene mudScene = GD.Load<PackedScene>("res://scenes//mud-1.tscn");
 
     private enum UserEvent
     {
@@ -28,6 +39,24 @@ public partial class Main : Node
     public override void _Ready()
     {
         SpawnRockford();
+        SpawnMud();
+    }
+
+    private void SpawnMud()
+    {
+        for (int x = 0; x <= GRID_WIDTH; x++)
+        {
+            for (int y = 0; y <= GRID_HEIGHT; y++)
+            {
+                if ((x != 0) && (y != 0))
+                {
+                    var mud = mudScene.Instantiate<Mud1>();
+                    mud.GlobalPosition = new(x * SPRITE_WIDTH, y * SPRITE_HEIGHT);
+
+                    AddChild(mud);
+                }
+            }
+        }
     }
 
     private UserEvent GetInputEvent(double delta)
@@ -62,7 +91,6 @@ public partial class Main : Node
             if (idleInputDelayTime > 0.15)
             {
                 idleInputDelayTime = 0;
-                GD.Print("idle");
                 player.Move(Rockford.MoveDirection.none);
             }
         }
