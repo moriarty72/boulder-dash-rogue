@@ -6,6 +6,5 @@
 
 [node name="Main" type="Node2D"]
 material = SubResource("CanvasItemMaterial_o5qli")
-position = Vector2(29, 0)
 script = ExtResource("1_o5qli")
 disableInputDelay = 0.15

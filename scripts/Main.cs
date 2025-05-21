@@ -20,8 +20,10 @@ public partial class Main : Node
 
     private PackedScene playerScene = GD.Load<PackedScene>("res://scenes//rockford.tscn");
     private PackedScene mudScene = GD.Load<PackedScene>("res://scenes//mud-1.tscn");
+    private PackedScene rockScene = GD.Load<PackedScene>("res://scenes//rock.tscn");
 
-    private enum UserEvent
+
+    public enum UserEvent
     {
         ueNone,
         ueLeft,
@@ -42,24 +44,39 @@ public partial class Main : Node
         SpawnMud();
     }
 
+    private void AddObject<T>(PackedScene packedScene, float x, float y) where T : Node2D
+    {
+        var obj = packedScene.Instantiate<T>();
+        obj.GlobalPosition = new(x, y);
+
+        AddChild(obj);
+    }
+
     private void SpawnMud()
     {
+        int rockCount = 15;
         for (int x = 0; x <= GRID_WIDTH; x++)
         {
             for (int y = 0; y <= GRID_HEIGHT; y++)
             {
-                if ((x != 0) && (y != 0))
+                if ((x != 0) || (y != 0))
                 {
-                    var mud = mudScene.Instantiate<Mud1>();
-                    mud.GlobalPosition = new(x * SPRITE_WIDTH, y * SPRITE_HEIGHT);
-
-                    AddChild(mud);
+                    Random rnd = new Random(System.Environment.TickCount);
+                    if ((rockCount >= 0) && ((rnd.Next(0, 10) % 2) == 0))
+                    {
+                        AddObject<Rock>(rockScene, x * SPRITE_WIDTH, y * SPRITE_HEIGHT);
+                        rockCount--;
+                    }
+                    else
+                    {
+                        AddObject<Mud1>(mudScene, x * SPRITE_WIDTH, y * SPRITE_HEIGHT);
+                    }
                 }
             }
         }
     }
 
-    private UserEvent GetInputEvent(double delta)
+    public UserEvent GetInputEvent(double delta)
     {
         if (eventQueue.Count == 0)
             return UserEvent.ueNone;
@@ -76,14 +93,18 @@ public partial class Main : Node
 
     private void SpawnRockford()
     {
-        Random rnd = new Random(System.Environment.TickCount);
-
         player = playerScene.Instantiate<Rockford>();
+        player.Initilize(this);
+
         AddChild(player);
     }
 
     private void GameLoopManagement(double delta)
     {
+        if (player == null)
+            return;
+
+        /*
         UserEvent inputEvent = GetInputEvent(delta);
         if (inputEvent == UserEvent.ueNone)
         {
@@ -114,6 +135,7 @@ public partial class Main : Node
             idleInputDelayTime = 0;
             player.Move(Rockford.MoveDirection.down);
         }
+        */
     }
 
     private void HandleInput(double delta)
@@ -156,6 +178,14 @@ public partial class Main : Node
     {
         HandleInput(delta);
         GameLoopManagement(delta);
+    }
+
+    public void OnPlayerCollide(Node2D collisionNode)
+    {
+        if (collisionNode is Mud1)
+        {
+            collisionNode.QueueFree();
+        }
     }
 
 }

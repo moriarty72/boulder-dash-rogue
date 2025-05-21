@@ -12,11 +12,19 @@ public partial class Rockford : Area2D
         none
     };
 
+    private Main mainController;
+
     private AnimatedSprite2D animatedSprite2D;
     private Vector2 currentPosition;
     private MoveDirection lastHorizontalMove = MoveDirection.right;
     private MoveDirection currentMoveDirection = MoveDirection.none;
     private double lastMoveTick = 0;
+    private double idleInputDelayTime = 0;
+
+    public void Initilize(Main mc)
+    {
+        mainController = mc;
+    }
 
     public override void _Ready()
     {
@@ -70,10 +78,43 @@ public partial class Rockford : Area2D
     public override void _PhysicsProcess(double delta)
     {
         base._PhysicsProcess(delta);
+
+        Main.UserEvent inputEvent = mainController.GetInputEvent(delta);
+        if (inputEvent == Main.UserEvent.ueNone)
+        {
+            idleInputDelayTime += delta;
+            if (idleInputDelayTime > 0.15)
+            {
+                idleInputDelayTime = 0;
+                Move(MoveDirection.none);
+            }
+        }
+        else if (inputEvent == Main.UserEvent.ueLeft)
+        {
+            idleInputDelayTime = 0;
+            Move(MoveDirection.left);
+        }
+        else if (inputEvent == Main.UserEvent.ueRight)
+        {
+            idleInputDelayTime = 0;
+            Move(MoveDirection.right);
+        }
+        else if (inputEvent == Main.UserEvent.ueUp)
+        {
+            idleInputDelayTime = 0;
+            Move(MoveDirection.up);
+        }
+        else if (inputEvent == Main.UserEvent.ueDown)
+        {
+            idleInputDelayTime = 0;
+            Move(MoveDirection.down);
+        }
+
     }
 
     private void _on_player_body_entered(Node2D body)
     {
-        GD.Print("Rockford collide");
+        // GD.Print("Rockford collide " + body.Name);
+        mainController.OnPlayerCollide(body);
     }
 }
