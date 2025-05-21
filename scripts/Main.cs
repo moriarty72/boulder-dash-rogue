@@ -68,7 +68,7 @@ public partial class Main : Node
             for (int y = 0; y < testLevelGridSize.Y; y++)
             {
                 bool isCorner = ((x == 0) && (y == 0)) || ((x == 0) && (y == (testLevelGridSize.Y - 1))) || ((x == (testLevelGridSize.X - 1)) && (y == 0)) || ((x == (testLevelGridSize.X - 1)) && (y == (testLevelGridSize.Y - 1)));
-                bool isSide = ((x > 0) && (x < GRID_WIDTH) && ((y == 0) || (y == (testLevelGridSize.Y - 1)))) || ((y > 0) && (y < GRID_HEIGHT) && ((x == 0) || (x == (testLevelGridSize.X - 1))));
+                bool isSide = ((x > 0) && (x < testLevelGridSize.X) && ((y == 0) || (y == (testLevelGridSize.Y - 1)))) || ((y > 0) && (y < testLevelGridSize.Y) && ((x == 0) || (x == (testLevelGridSize.X - 1))));
 
                 if (isCorner || isSide)
                     AddObject<MetalWall>(metalWallScene, x * SPRITE_WIDTH, y * SPRITE_HEIGHT);
@@ -97,7 +97,14 @@ public partial class Main : Node
     {
         player = playerScene.Instantiate<Rockford>();
         player.Initilize(this, new(testRockfordPosition.X * SPRITE_WIDTH, testRockfordPosition.Y * SPRITE_HEIGHT));
-        
+
+        Camera2D camera2D = GetNode<Camera2D>("Camera2D");
+        RemoteTransform2D remoteTransform2D = new()
+        {
+            RemotePath = camera2D.GetPath()
+        };
+        player.AddChild(remoteTransform2D);
+
         AddChild(player);
     }
 

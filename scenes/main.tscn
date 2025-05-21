@@ -8,3 +8,13 @@
 material = SubResource("CanvasItemMaterial_o5qli")
 script = ExtResource("1_o5qli")
 disableInputDelay = 0.15
+testLevelGridSize = Vector2i(40, 24)
+
+[node name="Camera2D" type="Camera2D" parent="."]
+limit_smoothed = true
+position_smoothing_enabled = true
+position_smoothing_speed = 4.0
+drag_horizontal_enabled = true
+drag_vertical_enabled = true
+drag_horizontal_offset = 1.0
+drag_vertical_offset = 1.0
