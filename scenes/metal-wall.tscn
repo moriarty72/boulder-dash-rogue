@@ -1,0 +1,19 @@
+[gd_scene load_steps=4 format=3 uid="uid://bn22yl6yfgg5"]
+
+[ext_resource type="Script" uid="uid://b2njslhy4sufk" path="res://scripts/MetalWall.cs" id="1_527bk"]
+[ext_resource type="Texture2D" uid="uid://dna13gfijq6eb" path="res://assets/door-locked.png" id="1_xchbm"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_527bk"]
+size = Vector2(64, 64)
+
+[node name="Metal-wall" type="Area2D"]
+script = ExtResource("1_527bk")
+
+[node name="Sprite2D" type="Sprite2D" parent="."]
+texture_filter = 1
+position = Vector2(32, 32)
+texture = ExtResource("1_xchbm")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+position = Vector2(32, 32)
+shape = SubResource("RectangleShape2D_527bk")

@@ -21,16 +21,15 @@ public partial class Rockford : Area2D
     private double lastMoveTick = 0;
     private double idleInputDelayTime = 0;
 
-    public void Initilize(Main mc)
+    public void Initilize(Main mc, Vector2 position)
     {
         mainController = mc;
+        currentPosition = position;
+        GlobalPosition = currentPosition;
     }
 
     public override void _Ready()
     {
-        currentPosition = new(0.0f, 0.0f);
-        GlobalPosition = currentPosition;
-
         animatedSprite2D = GetNode<AnimatedSprite2D>("AnimatedSprite2D");
         animatedSprite2D.Play("stand");
     }

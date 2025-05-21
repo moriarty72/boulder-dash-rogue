@@ -4,9 +4,11 @@ using System.Collections.Generic;
 
 public partial class Main : Node
 {
+    // Resolution Refs:
     // window res: 1280x768
     // sprite size: 64x64
-    // grid size: 20x12
+    // grid tile size: 20x12
+
     public const int GRID_WIDTH = 20;
     public const int GRID_HEIGHT = 12;
 
@@ -16,11 +18,18 @@ public partial class Main : Node
     [Export]
     public double disableInputDelay = 1.0;
 
+    [Export]
+    public Vector2I testLevelGridSize = new(20, 12);
+
+    [Export]
+    public Vector2I testRockfordPosition = new(1, 1);
+
     private Rockford player;
 
     private PackedScene playerScene = GD.Load<PackedScene>("res://scenes//rockford.tscn");
     private PackedScene mudScene = GD.Load<PackedScene>("res://scenes//mud-1.tscn");
     private PackedScene rockScene = GD.Load<PackedScene>("res://scenes//rock.tscn");
+    private PackedScene metalWallScene = GD.Load<PackedScene>("res://scenes//metal-wall.tscn");
 
 
     public enum UserEvent
@@ -41,7 +50,7 @@ public partial class Main : Node
     public override void _Ready()
     {
         SpawnRockford();
-        SpawnMud();
+        SpawnTestLevel();
     }
 
     private void AddObject<T>(PackedScene packedScene, float x, float y) where T : Node2D
@@ -52,26 +61,19 @@ public partial class Main : Node
         AddChild(obj);
     }
 
-    private void SpawnMud()
+    private void SpawnTestLevel()
     {
-        int rockCount = 15;
-        for (int x = 0; x <= GRID_WIDTH; x++)
+        for (int x = 0; x < testLevelGridSize.X; x++)
         {
-            for (int y = 0; y <= GRID_HEIGHT; y++)
+            for (int y = 0; y < testLevelGridSize.Y; y++)
             {
-                if ((x != 0) || (y != 0))
-                {
-                    Random rnd = new Random(System.Environment.TickCount);
-                    if ((rockCount >= 0) && ((rnd.Next(0, 10) % 2) == 0))
-                    {
-                        AddObject<Rock>(rockScene, x * SPRITE_WIDTH, y * SPRITE_HEIGHT);
-                        rockCount--;
-                    }
-                    else
-                    {
-                        AddObject<Mud1>(mudScene, x * SPRITE_WIDTH, y * SPRITE_HEIGHT);
-                    }
-                }
+                bool isCorner = ((x == 0) && (y == 0)) || ((x == 0) && (y == (testLevelGridSize.Y - 1))) || ((x == (testLevelGridSize.X - 1)) && (y == 0)) || ((x == (testLevelGridSize.X - 1)) && (y == (testLevelGridSize.Y - 1)));
+                bool isSide = ((x > 0) && (x < GRID_WIDTH) && ((y == 0) || (y == (testLevelGridSize.Y - 1)))) || ((y > 0) && (y < GRID_HEIGHT) && ((x == 0) || (x == (testLevelGridSize.X - 1))));
+
+                if (isCorner || isSide)
+                    AddObject<MetalWall>(metalWallScene, x * SPRITE_WIDTH, y * SPRITE_HEIGHT);
+                else
+                    AddObject<Mud1>(mudScene, x * SPRITE_WIDTH, y * SPRITE_HEIGHT);
             }
         }
     }
@@ -94,48 +96,14 @@ public partial class Main : Node
     private void SpawnRockford()
     {
         player = playerScene.Instantiate<Rockford>();
-        player.Initilize(this);
-
+        player.Initilize(this, new(testRockfordPosition.X * SPRITE_WIDTH, testRockfordPosition.Y * SPRITE_HEIGHT));
+        
         AddChild(player);
     }
 
     private void GameLoopManagement(double delta)
     {
-        if (player == null)
-            return;
 
-        /*
-        UserEvent inputEvent = GetInputEvent(delta);
-        if (inputEvent == UserEvent.ueNone)
-        {
-            idleInputDelayTime += delta;
-            if (idleInputDelayTime > 0.15)
-            {
-                idleInputDelayTime = 0;
-                player.Move(Rockford.MoveDirection.none);
-            }
-        }
-        else if (inputEvent == UserEvent.ueLeft)
-        {
-            idleInputDelayTime = 0;
-            player.Move(Rockford.MoveDirection.left);
-        }
-        else if (inputEvent == UserEvent.ueRight)
-        {
-            idleInputDelayTime = 0;
-            player.Move(Rockford.MoveDirection.right);
-        }
-        else if (inputEvent == UserEvent.ueUp)
-        {
-            idleInputDelayTime = 0;
-            player.Move(Rockford.MoveDirection.up);
-        }
-        else if (inputEvent == UserEvent.ueDown)
-        {
-            idleInputDelayTime = 0;
-            player.Move(Rockford.MoveDirection.down);
-        }
-        */
     }
 
     private void HandleInput(double delta)
