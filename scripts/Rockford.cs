@@ -12,6 +12,8 @@ public partial class Rockford : Area2D
         none
     };
 
+    public Vector2I GridPosition;
+
     private Main mainController;
 
     private AnimatedSprite2D animatedSprite2D;
@@ -21,11 +23,12 @@ public partial class Rockford : Area2D
     private double lastMoveTick = 0;
     private double idleInputDelayTime = 0;
 
-    public void Initilize(Main mc, Vector2 position)
+    public void Initilize(Main mc, Vector2 position, Vector2I gridPosition)
     {
         mainController = mc;
         currentPosition = position;
         GlobalPosition = currentPosition;
+        GridPosition = gridPosition;
     }
 
     public override void _Ready()
@@ -51,27 +54,56 @@ public partial class Rockford : Area2D
             lastHorizontalMove = MoveDirection.right;
         }
         else if ((moveDirection == MoveDirection.up) || (moveDirection == MoveDirection.down))
+        {
             PlayAnimation(lastHorizontalMove);
+        }
         else if (moveDirection == MoveDirection.none)
             animatedSprite2D.Play("stand");
     }
 
     public void Move(MoveDirection moveDirection)
     {
+        if (moveDirection == MoveDirection.none)
+            return;
+
+        Vector2I prevGridPosition = new(GridPosition.X, GridPosition.Y);
+
         if (moveDirection == MoveDirection.up)
+        {
+            GridPosition.Y--;
             currentPosition.Y -= 64;
+        }
 
         if (moveDirection == MoveDirection.left)
+        {
+            GridPosition.X--;
             currentPosition.X -= 64;
+        }
 
         if (moveDirection == MoveDirection.right)
+        {
+            GridPosition.X++;
             currentPosition.X += 64;
+        }
 
         if (moveDirection == MoveDirection.down)
+        {
+            GridPosition.Y++;
             currentPosition.Y += 64;
+        }
 
-        PlayAnimation(moveDirection);
-        GlobalPosition = currentPosition;
+        bool canPlayerMove = mainController.CanPlayerMove(GridPosition);
+        if (canPlayerMove)
+        {
+            PlayAnimation(moveDirection);
+            GlobalPosition = currentPosition;
+        }
+        else
+        {
+            GridPosition = prevGridPosition;
+            currentPosition = GlobalPosition;
+        }
+        GD.Print("Rockford next grid position " + GridPosition);
     }
 
     public override void _PhysicsProcess(double delta)

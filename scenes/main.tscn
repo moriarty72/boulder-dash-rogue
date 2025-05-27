@@ -11,6 +11,8 @@ disableInputDelay = 0.15
 testLevelGridSize = Vector2i(40, 24)
 
 [node name="Camera2D" type="Camera2D" parent="."]
+limit_left = 0
+limit_top = 0
 limit_smoothed = true
 position_smoothing_enabled = true
 position_smoothing_speed = 4.0

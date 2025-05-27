@@ -8,9 +8,10 @@ public partial class Main : Node
     // window res: 1280x768
     // sprite size: 64x64
     // grid tile size: 20x12
-
+    /*
     public const int GRID_WIDTH = 20;
     public const int GRID_HEIGHT = 12;
+    */
 
     public const int SPRITE_WIDTH = 64;
     public const int SPRITE_HEIGHT = 64;
@@ -24,6 +25,9 @@ public partial class Main : Node
     [Export]
     public Vector2I testRockfordPosition = new(1, 1);
 
+    [Export]
+    public int rockPerColumn = 10;
+
     private Rockford player;
 
     private PackedScene playerScene = GD.Load<PackedScene>("res://scenes//rockford.tscn");
@@ -31,6 +35,7 @@ public partial class Main : Node
     private PackedScene rockScene = GD.Load<PackedScene>("res://scenes//rock.tscn");
     private PackedScene metalWallScene = GD.Load<PackedScene>("res://scenes//metal-wall.tscn");
 
+    private List<GridItem> levelGrid = [];
 
     public enum UserEvent
     {
@@ -49,8 +54,44 @@ public partial class Main : Node
 
     public override void _Ready()
     {
+        InitilizeLevelGrid();
         SpawnRockford();
         SpawnTestLevel();
+    }
+
+    private int GetGridIndex(int x, int y)
+    {
+        int index = x + y * testLevelGridSize.X;
+        return index;
+    }
+
+    private void AddGridItem(ItemType type, int x, int y)
+    {
+        int index = GetGridIndex(x, y);
+        levelGrid[index] = new GridItem(type, x, y);
+    }
+
+    private void InitilizeLevelGrid()
+    {
+        Camera2D camera2D = GetNode<Camera2D>("Camera2D");
+
+        camera2D.LimitTop = camera2D.LimitLeft = 0;
+        camera2D.LimitRight = testLevelGridSize.X * SPRITE_WIDTH;
+        camera2D.LimitBottom = testLevelGridSize.Y * SPRITE_HEIGHT;
+
+        for (int x = 0; x < testLevelGridSize.X; x++)
+        {
+            for (int y = 0; y < testLevelGridSize.Y; y++)
+            {
+                levelGrid.Add(null);
+            }
+        }
+    }
+
+    private GridItem GetGridItem(int x, int y)
+    {
+        int index = GetGridIndex(x, y);
+        return levelGrid[index];
     }
 
     private void AddObject<T>(PackedScene packedScene, float x, float y) where T : Node2D
@@ -63,17 +104,36 @@ public partial class Main : Node
 
     private void SpawnTestLevel()
     {
+        Random rnd = new(System.Environment.TickCount);
+
         for (int x = 0; x < testLevelGridSize.X; x++)
         {
+            int rockToSpawn = rockPerColumn;
             for (int y = 0; y < testLevelGridSize.Y; y++)
             {
                 bool isCorner = ((x == 0) && (y == 0)) || ((x == 0) && (y == (testLevelGridSize.Y - 1))) || ((x == (testLevelGridSize.X - 1)) && (y == 0)) || ((x == (testLevelGridSize.X - 1)) && (y == (testLevelGridSize.Y - 1)));
                 bool isSide = ((x > 0) && (x < testLevelGridSize.X) && ((y == 0) || (y == (testLevelGridSize.Y - 1)))) || ((y > 0) && (y < testLevelGridSize.Y) && ((x == 0) || (x == (testLevelGridSize.X - 1))));
 
                 if (isCorner || isSide)
+                {
+                    AddGridItem(ItemType.MetalWall, x, y);
                     AddObject<MetalWall>(metalWallScene, x * SPRITE_WIDTH, y * SPRITE_HEIGHT);
+                }
                 else
-                    AddObject<Mud1>(mudScene, x * SPRITE_WIDTH, y * SPRITE_HEIGHT);
+                {
+                    if (((rnd.Next(1, 100) % 5) == 0) && (rockToSpawn > 0))
+                    {
+                        AddGridItem(ItemType.Rock, x, y);
+                        AddObject<Rock>(rockScene, x * SPRITE_WIDTH, y * SPRITE_HEIGHT);
+
+                        rockToSpawn--;
+                    }
+                    else
+                    {
+                        AddGridItem(ItemType.Mud, x, y);
+                        AddObject<Mud1>(mudScene, x * SPRITE_WIDTH, y * SPRITE_HEIGHT);
+                    }
+                }
             }
         }
     }
@@ -96,7 +156,7 @@ public partial class Main : Node
     private void SpawnRockford()
     {
         player = playerScene.Instantiate<Rockford>();
-        player.Initilize(this, new(testRockfordPosition.X * SPRITE_WIDTH, testRockfordPosition.Y * SPRITE_HEIGHT));
+        player.Initilize(this, new(testRockfordPosition.X * SPRITE_WIDTH, testRockfordPosition.Y * SPRITE_HEIGHT), testRockfordPosition);
 
         Camera2D camera2D = GetNode<Camera2D>("Camera2D");
         RemoteTransform2D remoteTransform2D = new()
@@ -105,7 +165,26 @@ public partial class Main : Node
         };
         player.AddChild(remoteTransform2D);
 
+        AddGridItem(ItemType.Rockford, testRockfordPosition.X, testRockfordPosition.Y);
         AddChild(player);
+    }
+
+    public bool CanPlayerMove(Vector2I nextPlayerPosition)
+    {
+        GridItem gridItem = GetGridItem(nextPlayerPosition.X, nextPlayerPosition.Y);
+
+        if (gridItem != null)
+        {
+            switch (gridItem.Type)
+            {
+                case ItemType.Rock:
+                    return false;
+
+                case ItemType.MetalWall:
+                    return false;
+            }
+        }
+        return true;
     }
 
     private void GameLoopManagement(double delta)
@@ -155,6 +234,11 @@ public partial class Main : Node
         GameLoopManagement(delta);
     }
 
+    public void OnPlayerMove()
+    {
+        
+    }
+
     public void OnPlayerCollide(Node2D collisionNode)
     {
         if (collisionNode is Mud1)
@@ -162,5 +246,4 @@ public partial class Main : Node
             collisionNode.QueueFree();
         }
     }
-
 }
