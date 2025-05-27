@@ -64,8 +64,11 @@ public partial class Rockford : Area2D
     public void Move(MoveDirection moveDirection)
     {
         if (moveDirection == MoveDirection.none)
+        {
+            PlayAnimation(moveDirection);
             return;
-
+        }
+            
         Vector2I prevGridPosition = new(GridPosition.X, GridPosition.Y);
 
         if (moveDirection == MoveDirection.up)
@@ -97,6 +100,8 @@ public partial class Rockford : Area2D
         {
             PlayAnimation(moveDirection);
             GlobalPosition = currentPosition;
+
+            mainController.SwapGridItems(prevGridPosition, GridPosition, true);
         }
         else
         {
@@ -146,6 +151,6 @@ public partial class Rockford : Area2D
     private void _on_player_body_entered(Node2D body)
     {
         // GD.Print("Rockford collide " + body.Name);
-        mainController.OnPlayerCollide(body);
+        // mainController.OnPlayerCollide(body, GridPosition);
     }
 }

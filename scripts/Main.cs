@@ -55,8 +55,8 @@ public partial class Main : Node
     public override void _Ready()
     {
         InitilizeLevelGrid();
-        SpawnRockford();
         SpawnTestLevel();
+        SpawnRockford();
     }
 
     private int GetGridIndex(int x, int y)
@@ -65,10 +65,10 @@ public partial class Main : Node
         return index;
     }
 
-    private void AddGridItem(ItemType type, int x, int y)
+    private void AddGridItem(ItemType type, int x, int y, Node2D nodeObject)
     {
         int index = GetGridIndex(x, y);
-        levelGrid[index] = new GridItem(type, x, y);
+        levelGrid[index] = new GridItem(type, x, y, nodeObject);
     }
 
     private void InitilizeLevelGrid()
@@ -94,12 +94,14 @@ public partial class Main : Node
         return levelGrid[index];
     }
 
-    private void AddObject<T>(PackedScene packedScene, float x, float y) where T : Node2D
+    private T AddObject<T>(PackedScene packedScene, float x, float y) where T : Node2D
     {
         var obj = packedScene.Instantiate<T>();
         obj.GlobalPosition = new(x, y);
 
         AddChild(obj);
+
+        return obj;
     }
 
     private void SpawnTestLevel()
@@ -111,27 +113,31 @@ public partial class Main : Node
             int rockToSpawn = rockPerColumn;
             for (int y = 0; y < testLevelGridSize.Y; y++)
             {
+                if ((x == testRockfordPosition.X) && (y == testRockfordPosition.Y))
+                    continue;
+
                 bool isCorner = ((x == 0) && (y == 0)) || ((x == 0) && (y == (testLevelGridSize.Y - 1))) || ((x == (testLevelGridSize.X - 1)) && (y == 0)) || ((x == (testLevelGridSize.X - 1)) && (y == (testLevelGridSize.Y - 1)));
                 bool isSide = ((x > 0) && (x < testLevelGridSize.X) && ((y == 0) || (y == (testLevelGridSize.Y - 1)))) || ((y > 0) && (y < testLevelGridSize.Y) && ((x == 0) || (x == (testLevelGridSize.X - 1))));
 
                 if (isCorner || isSide)
                 {
-                    AddGridItem(ItemType.MetalWall, x, y);
-                    AddObject<MetalWall>(metalWallScene, x * SPRITE_WIDTH, y * SPRITE_HEIGHT);
+                    MetalWall metalWall = AddObject<MetalWall>(metalWallScene, x * SPRITE_WIDTH, y * SPRITE_HEIGHT);
+                    AddGridItem(ItemType.MetalWall, x, y, metalWall);
                 }
                 else
                 {
-                    if (((rnd.Next(1, 100) % 5) == 0) && (rockToSpawn > 0))
+                    if ((x > 2) && (y > 2) && ((rnd.Next(1, 100) % 5) == 0) && (rockToSpawn > 0))
                     {
-                        AddGridItem(ItemType.Rock, x, y);
-                        AddObject<Rock>(rockScene, x * SPRITE_WIDTH, y * SPRITE_HEIGHT);
+                        Rock rock = AddObject<Rock>(rockScene, x * SPRITE_WIDTH, y * SPRITE_HEIGHT);
+                        rock.Initilize(this, new(x, y));
 
                         rockToSpawn--;
+                        AddGridItem(ItemType.Rock, x, y, rock);
                     }
                     else
                     {
-                        AddGridItem(ItemType.Mud, x, y);
-                        AddObject<Mud1>(mudScene, x * SPRITE_WIDTH, y * SPRITE_HEIGHT);
+                        Mud1 mud1 = AddObject<Mud1>(mudScene, x * SPRITE_WIDTH, y * SPRITE_HEIGHT);
+                        AddGridItem(ItemType.Mud, x, y, mud1);
                     }
                 }
             }
@@ -165,7 +171,7 @@ public partial class Main : Node
         };
         player.AddChild(remoteTransform2D);
 
-        AddGridItem(ItemType.Rockford, testRockfordPosition.X, testRockfordPosition.Y);
+        AddGridItem(ItemType.Rockford, testRockfordPosition.X, testRockfordPosition.Y, player);
         AddChild(player);
     }
 
@@ -185,6 +191,34 @@ public partial class Main : Node
             }
         }
         return true;
+    }
+
+    public bool CanRockFall(Vector2I rockPosition)
+    {
+        GridItem gridItem = GetGridItem(rockPosition.X, rockPosition.Y + 1);
+        return gridItem.Type == ItemType.None;
+    }
+
+    public void SwapGridItems(Vector2I prevPosition, Vector2I newPosition, bool replaceNext)
+    {
+        int prevIndex = GetGridIndex(prevPosition.X, prevPosition.Y);
+        int nextIndex = GetGridIndex(newPosition.X, newPosition.Y);
+
+        GridItem prevGridItem = levelGrid[prevIndex];
+        GridItem nextGridItem = levelGrid[nextIndex];
+
+        if (replaceNext)
+        {
+            if (nextGridItem.NodeObject != null)
+                nextGridItem.NodeObject.QueueFree();
+            levelGrid[prevIndex] = new(ItemType.None, prevGridItem.Position, null);
+            levelGrid[nextIndex] = new(prevGridItem.Type, prevGridItem.Position, prevGridItem.NodeObject);
+        }
+        else
+        {
+            levelGrid[prevIndex] = new(nextGridItem.Type, nextGridItem.Position, nextGridItem.NodeObject);
+            levelGrid[nextIndex] = new(prevGridItem.Type, prevGridItem.Position, prevGridItem.NodeObject);
+        }
     }
 
     private void GameLoopManagement(double delta)
@@ -236,13 +270,14 @@ public partial class Main : Node
 
     public void OnPlayerMove()
     {
-        
+
     }
 
-    public void OnPlayerCollide(Node2D collisionNode)
+    public void OnPlayerCollide(Node2D collisionNode, Vector2I gridPosition)
     {
         if (collisionNode is Mud1)
         {
+            AddGridItem(ItemType.None, gridPosition.X, gridPosition.Y, null);
             collisionNode.QueueFree();
         }
     }
