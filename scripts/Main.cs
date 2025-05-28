@@ -34,6 +34,7 @@ public partial class Main : Node
     private PackedScene mudScene = GD.Load<PackedScene>("res://scenes//mud-1.tscn");
     private PackedScene rockScene = GD.Load<PackedScene>("res://scenes//rock.tscn");
     private PackedScene metalWallScene = GD.Load<PackedScene>("res://scenes//metal-wall.tscn");
+    private PackedScene explosionScene = GD.Load<PackedScene>("res://scenes//explosion.tscn");
 
     private List<GridItem> levelGrid = [];
 
@@ -46,11 +47,21 @@ public partial class Main : Node
         ueDown,
         ueFire
     }
+
+    private enum GameState
+    {
+        gsTitle,
+        gpPlay,
+        gsRockfordDead,
+        gsGameOver
+    }
+
     private Queue<UserEvent> eventQueue = new Queue<UserEvent>();
     private double disableInputDelayTime = 0;
     private double idleInputDelayTime = 0;
 
     private bool inputEnabled = true;
+    private GameState gameState = GameState.gpPlay;
 
     public override void _Ready()
     {
@@ -193,10 +204,37 @@ public partial class Main : Node
         return true;
     }
 
-    public bool CanRockFall(Vector2I rockPosition)
+    public Rock.State CanRockFall(Vector2I rockPosition)
     {
         GridItem gridItem = GetGridItem(rockPosition.X, rockPosition.Y + 1);
-        return gridItem.Type == ItemType.None;
+        if (gridItem.Type == ItemType.None)
+            return Rock.State.Fall;
+
+        if (gridItem.Type == ItemType.Rock)
+        {
+            gridItem = GetGridItem(rockPosition.X - 1, rockPosition.Y + 1);
+            GridItem gridItemLeft = GetGridItem(rockPosition.X - 1, rockPosition.Y);
+            if ((gridItem.Type == ItemType.None) && (gridItemLeft.Type == ItemType.None))
+                return Rock.State.FallLeft;
+
+            gridItem = GetGridItem(rockPosition.X + 1, rockPosition.Y + 1);
+            GridItem gridItemRight = GetGridItem(rockPosition.X + 1, rockPosition.Y);
+            if ((gridItem.Type == ItemType.None) && (gridItemRight.Type == ItemType.None))
+                return Rock.State.FallRight;
+        }
+        return Rock.State.Stand;
+    }
+
+    public bool CheckRockfordCollision(Vector2I rockPosition, int offsetX, int offsetY)
+    {
+        GridItem gridItem = GetGridItem(rockPosition.X + offsetX, rockPosition.Y + offsetY);
+        if (gridItem.Type == ItemType.Rockford)
+        {
+            GD.Print("ROCKFORD DEAD !!!!!!");
+            gameState = GameState.gsRockfordDead;
+        }
+        
+        return false;
     }
 
     public void SwapGridItems(Vector2I prevPosition, Vector2I newPosition, bool replaceNext)
@@ -221,8 +259,41 @@ public partial class Main : Node
         }
     }
 
+    private void SpawnRockfordDead(Vector2I position)
+    {
+        for (int x = position.X - 1; x < position.X + 2; x++)
+        {
+            for (int y = position.Y - 1; y < position.Y + 2; y++)
+            {
+                GridItem gridItem = GetGridItem(x, y);
+                if (gridItem.Type != ItemType.MetalWall)
+                {
+                    Explosion explosion = AddObject<Explosion>(explosionScene, x * SPRITE_WIDTH, y * SPRITE_HEIGHT);
+                    AddGridItem(ItemType.Explosion, x, y, explosion);
+                }
+            }
+        }
+    }
+
     private void GameLoopManagement(double delta)
     {
+        switch (gameState)
+        {
+            case GameState.gpPlay:
+                {
+                    HandleInput(delta);
+                    break;
+                }
+
+            case GameState.gsRockfordDead:
+                {
+                    GD.Print("Spawn Rockford dead animation " + player.GridPosition);
+                    SpawnRockfordDead(player.GridPosition);
+
+                    gameState = GameState.gsGameOver;
+                    break;
+                }
+        }
 
     }
 
@@ -264,7 +335,6 @@ public partial class Main : Node
 
     public override void _PhysicsProcess(double delta)
     {
-        HandleInput(delta);
         GameLoopManagement(delta);
     }
 

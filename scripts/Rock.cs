@@ -6,7 +6,9 @@ public partial class Rock : Area2D
     public enum State
     {
         Stand,
-        Fall
+        Fall,
+        FallLeft,
+        FallRight
     }
     [Export]
     public double RockMoveDelay = 0.5;
@@ -41,28 +43,44 @@ public partial class Rock : Area2D
         }
 
         Vector2I prevGridPosition = new(GridPosition.X, GridPosition.Y);
+        switch (CurrentState)
+        {
+            case State.Fall:
+                {
+                    GridPosition.Y++;
+                    currentPosition.Y += 64;
+                    break;
+                }
 
-        GridPosition.Y++;
-        currentPosition.Y += 64;
+            case State.FallLeft:
+                {
+                    GridPosition.X--;
+                    currentPosition.X -= 64;
+                    break;
+                }
+
+            case State.FallRight:
+                {
+                    GridPosition.X++;
+                    currentPosition.X += 64;
+                    break;
+                }
+        }
+
+        mainController.CheckRockfordCollision(GridPosition, 0, 1);
 
         GlobalPosition = currentPosition;
-
         mainController.SwapGridItems(prevGridPosition, GridPosition, false);
 
         lastMoveTick = 0;
-        CurrentState = State.Stand;
+        // CurrentState = State.Stand;
     }
 
     public override void _PhysicsProcess(double delta)
     {
         base._PhysicsProcess(delta);
-        bool fall = mainController.CanRockFall(GridPosition);
-        if (fall)
-        {
-            GD.Print("Rock fall " + GridPosition);
 
-            CurrentState = State.Fall;
-            Move(delta);
-        }
+        CurrentState = mainController.CanRockFall(GridPosition);
+        Move(delta);
     }
 }

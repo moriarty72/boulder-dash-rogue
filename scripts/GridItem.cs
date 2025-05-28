@@ -11,7 +11,8 @@ public enum ItemType
     Door,
     DoorOpen,
     Diamond,
-    Butterfly
+    Butterfly,
+    Explosion
 }
 
 public class GridItem

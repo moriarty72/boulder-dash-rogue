@@ -68,7 +68,7 @@ public partial class Rockford : Area2D
             PlayAnimation(moveDirection);
             return;
         }
-            
+
         Vector2I prevGridPosition = new(GridPosition.X, GridPosition.Y);
 
         if (moveDirection == MoveDirection.up)
@@ -150,7 +150,12 @@ public partial class Rockford : Area2D
 
     private void _on_player_body_entered(Node2D body)
     {
-        // GD.Print("Rockford collide " + body.Name);
+        // if (body is Rock)
+        // {
+        //     Rock rock = body as Rock;
+        //     GD.Print("Rockford collide " + rock.CurrentState);
+        // }
+            
         // mainController.OnPlayerCollide(body, GridPosition);
     }
 }
