@@ -1,10 +1,11 @@
 using Godot;
 using System;
 
-public partial class Rock : Area2D
+public partial class Rock : Area2D, IGridItem
 {
     public enum State
     {
+        Dead,
         Stand,
         Fall,
         FallLeft,
@@ -28,7 +29,7 @@ public partial class Rock : Area2D
 
     private void Move(double delta)
     {
-        if (CurrentState == State.Stand)
+        if ((CurrentState == State.Stand) || (CurrentState == State.Dead))
             return;
 
         if (lastMoveTick == 0)
@@ -82,5 +83,10 @@ public partial class Rock : Area2D
 
         CurrentState = mainController.CanRockFall(GridPosition);
         Move(delta);
+    }
+
+    public void Dead()
+    {
+        CurrentState = State.Dead;
     }
 }

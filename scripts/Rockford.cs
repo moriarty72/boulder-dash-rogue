@@ -1,8 +1,14 @@
 using Godot;
 using System;
 
-public partial class Rockford : Area2D
+public partial class Rockford : Area2D, IGridItem
 {
+    public enum State
+    {
+        Alive,
+        Dead
+    }
+
     public enum MoveDirection
     {
         left,
@@ -22,6 +28,8 @@ public partial class Rockford : Area2D
     private MoveDirection currentMoveDirection = MoveDirection.none;
     private double lastMoveTick = 0;
     private double idleInputDelayTime = 0;
+
+    public State rockfordState = State.Alive;
 
     public void Initilize(Main mc, Vector2 position, Vector2I gridPosition)
     {
@@ -113,6 +121,9 @@ public partial class Rockford : Area2D
 
     public override void _PhysicsProcess(double delta)
     {
+        if (rockfordState == State.Dead)
+            return;
+
         base._PhysicsProcess(delta);
 
         Main.UserEvent inputEvent = mainController.GetInputEvent(delta);
@@ -155,7 +166,12 @@ public partial class Rockford : Area2D
         //     Rock rock = body as Rock;
         //     GD.Print("Rockford collide " + rock.CurrentState);
         // }
-            
+
         // mainController.OnPlayerCollide(body, GridPosition);
+    }
+
+    public void Dead()
+    {
+        rockfordState = State.Dead;
     }
 }

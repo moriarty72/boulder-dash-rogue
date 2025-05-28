@@ -41,7 +41,7 @@ animations = [{
 "duration": 0.5,
 "texture": SubResource("AtlasTexture_xfoey")
 }],
-"loop": true,
+"loop": false,
 "name": &"explosion",
 "speed": 5.0
 }]
@@ -62,3 +62,5 @@ frame_progress = 0.381881
 [node name="CollisionShape2D" type="CollisionShape2D" parent="."]
 position = Vector2(31.5, 32)
 shape = SubResource("RectangleShape2D_17npe")
+
+[connection signal="animation_finished" from="AnimatedSprite2D" to="." method="OnAnimationEnd"]

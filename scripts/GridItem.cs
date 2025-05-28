@@ -35,4 +35,12 @@ public class GridItem
         NodeObject = nodeObject;
     }
 
+    public void Dead()
+    {
+        if (Type != ItemType.None)
+        {
+            NodeObject.QueueFree();
+            (NodeObject as IGridItem).Dead();
+        }
+    }
 }

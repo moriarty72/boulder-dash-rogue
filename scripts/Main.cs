@@ -115,6 +115,13 @@ public partial class Main : Node
         return obj;
     }
 
+    public void RemoveGridItem(Vector2I position)
+    {
+        int index = GetGridIndex(position.X, position.Y);
+        levelGrid[index].Dead();
+        levelGrid[index] = new(ItemType.None, position, null);;
+    }
+
     private void SpawnTestLevel()
     {
         Random rnd = new(System.Environment.TickCount);
@@ -233,7 +240,7 @@ public partial class Main : Node
             GD.Print("ROCKFORD DEAD !!!!!!");
             gameState = GameState.gsRockfordDead;
         }
-        
+
         return false;
     }
 
@@ -248,7 +255,7 @@ public partial class Main : Node
         if (replaceNext)
         {
             if (nextGridItem.NodeObject != null)
-                nextGridItem.NodeObject.QueueFree();
+                nextGridItem.Dead();
             levelGrid[prevIndex] = new(ItemType.None, prevGridItem.Position, null);
             levelGrid[nextIndex] = new(prevGridItem.Type, prevGridItem.Position, prevGridItem.NodeObject);
         }
@@ -261,6 +268,8 @@ public partial class Main : Node
 
     private void SpawnRockfordDead(Vector2I position)
     {
+        player.Dead();
+
         for (int x = position.X - 1; x < position.X + 2; x++)
         {
             for (int y = position.Y - 1; y < position.Y + 2; y++)
@@ -269,6 +278,9 @@ public partial class Main : Node
                 if (gridItem.Type != ItemType.MetalWall)
                 {
                     Explosion explosion = AddObject<Explosion>(explosionScene, x * SPRITE_WIDTH, y * SPRITE_HEIGHT);
+                    explosion.Initilize(this, new(x, y));
+
+                    RemoveGridItem(new(x, y));
                     AddGridItem(ItemType.Explosion, x, y, explosion);
                 }
             }
@@ -287,10 +299,16 @@ public partial class Main : Node
 
             case GameState.gsRockfordDead:
                 {
+                    gameState = GameState.gsGameOver;
+
                     GD.Print("Spawn Rockford dead animation " + player.GridPosition);
                     SpawnRockfordDead(player.GridPosition);
 
-                    gameState = GameState.gsGameOver;
+                    break;
+                }
+
+            case GameState.gsGameOver:
+                {
                     break;
                 }
         }
@@ -336,19 +354,5 @@ public partial class Main : Node
     public override void _PhysicsProcess(double delta)
     {
         GameLoopManagement(delta);
-    }
-
-    public void OnPlayerMove()
-    {
-
-    }
-
-    public void OnPlayerCollide(Node2D collisionNode, Vector2I gridPosition)
-    {
-        if (collisionNode is Mud1)
-        {
-            AddGridItem(ItemType.None, gridPosition.X, gridPosition.Y, null);
-            collisionNode.QueueFree();
-        }
     }
 }
