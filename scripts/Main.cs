@@ -41,12 +41,12 @@ public partial class Main : Node
 
     public enum UserEvent
     {
-        ueNone,
-        ueLeft,
-        ueRight,
-        ueUp,
-        ueDown,
-        ueFire
+        ueNone = 0,
+        ueLeft = 1,
+        ueRight = 2,
+        ueUp = 4,
+        ueDown = 8,
+        ueFire = 16
     }
 
     private enum GameState
@@ -213,7 +213,23 @@ public partial class Main : Node
         AddChild(player);
     }
 
-    public bool CanPlayerMove(Vector2I nextPlayerPosition, Rockford.MoveDirection rockfordDirection)
+    private bool CanRockfordPushRock(GridItem rockGridItem, Vector2I nextPlayerPosition, Rockford.MoveDirection rockfordDirection)
+    {
+        if ((rockfordDirection == Rockford.MoveDirection.left) || (rockfordDirection == Rockford.MoveDirection.right))
+        {
+            // check empty space after rock
+            int x = rockGridItem.Position.X + (rockfordDirection == Rockford.MoveDirection.left ? -1 : 1);
+            GridItem afterRockGridItem = GetGridItem(x, nextPlayerPosition.Y);
+            if (afterRockGridItem.Type == ItemType.None)
+            {
+                GD.Print("Rockford can move rock direction: " + rockfordDirection.ToString());
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public bool CanRockfordMove(Vector2I nextPlayerPosition, Rockford.MoveDirection rockfordDirection)
     {
         GridItem gridItem = GetGridItem(nextPlayerPosition.X, nextPlayerPosition.Y);
 
@@ -223,19 +239,8 @@ public partial class Main : Node
             {
                 case ItemType.Rock:
                     {
-                        // check if the rock can move with Rockford (only left or right)
-                        if ((rockfordDirection == Rockford.MoveDirection.left) || (rockfordDirection == Rockford.MoveDirection.right))
-                        {
-                            // check empty space after rock
-                            int x = nextPlayerPosition.X + (rockfordDirection == Rockford.MoveDirection.left ? -1 : 1);
-                            GridItem afterRockGridItem = GetGridItem(x, nextPlayerPosition.Y);
-                            if (afterRockGridItem.Type == ItemType.None)
-                            {
-                                GD.Print("Rockford can move rock direction: " + rockfordDirection.ToString());
-                                (gridItem.NodeObject as Rock).UpdateCurrentState(rockfordDirection == Rockford.MoveDirection.left ? Rock.State.PushedLeft : Rock.State.PushedRight);
-                            }
-
-                        }
+                        if (CanRockfordPushRock(gridItem, nextPlayerPosition, rockfordDirection))
+                            (gridItem.NodeObject as Rock).UpdateCurrentState(rockfordDirection == Rockford.MoveDirection.left ? Rock.State.PushedLeft : Rock.State.PushedRight);
                         return false;
                     }
 
@@ -293,6 +298,28 @@ public partial class Main : Node
         }
 
         return false;
+    }
+
+    public void RockfordFireAction(Vector2I position, Rockford.MoveDirection direction)
+    {
+        GridItem gridItem = null;
+
+        if (direction == Rockford.MoveDirection.up)
+            gridItem = GetGridItem(position.X, position.Y - 1);
+        else if (direction == Rockford.MoveDirection.left)
+            gridItem = GetGridItem(position.X - 1, position.Y);
+        else if (direction == Rockford.MoveDirection.down)
+            gridItem = GetGridItem(position.X, position.Y + 1);
+        else if (direction == Rockford.MoveDirection.right)
+            gridItem = GetGridItem(position.X + 1, position.Y);
+
+        if (gridItem.Type == ItemType.Mud)
+            RemoveGridItem(gridItem.Position);
+        else if (gridItem.Type == ItemType.Rock)
+        {
+            if (CanRockfordPushRock(gridItem, position, direction))
+                (gridItem.NodeObject as Rock).UpdateCurrentState(direction == Rockford.MoveDirection.left ? Rock.State.PushedLeft : Rock.State.PushedRight);
+        }
     }
 
     public void SwapGridItems(Vector2I prevPosition, Vector2I newPosition, bool replaceNext)
@@ -372,7 +399,7 @@ public partial class Main : Node
                         gameState = GameState.gsInitialize;
 
                     ProcessGameObjects(delta);
-                    
+
                     break;
                 }
         }
@@ -415,6 +442,47 @@ public partial class Main : Node
             eventQueue.Enqueue(UserEvent.ueFire);
     }
 
+    private void HandleMultipleInput(double delta)
+    {
+        if (!inputEnabled)
+        {
+            disableInputDelayTime += delta;
+            if (disableInputDelayTime < disableInputDelay)
+                return;
+
+            disableInputDelayTime = 0;
+            inputEnabled = true;
+        }
+
+        UserEvent userEvents = UserEvent.ueNone;
+
+        if (Input.IsActionPressed("ui_accept"))
+            userEvents |= UserEvent.ueFire;
+
+        if (Input.IsActionPressed("ui_left"))
+        {
+            userEvents |= UserEvent.ueLeft;
+            inputEnabled = false;
+        }
+        else if (Input.IsActionPressed("ui_right"))
+        {
+            userEvents |= UserEvent.ueRight;
+            inputEnabled = false;
+        }
+        else if (Input.IsActionPressed("ui_up"))
+        {
+            userEvents |= UserEvent.ueUp;
+            inputEnabled = false;
+        }
+        else if (Input.IsActionPressed("ui_down"))
+        {
+            userEvents |= UserEvent.ueDown;
+            inputEnabled = false;
+        }
+
+        eventQueue.Enqueue(userEvents);
+    }
+
     private void ProcessGameObjects(double delta)
     {
         levelRocks.ForEach(rock => rock.Process(delta));
@@ -423,7 +491,7 @@ public partial class Main : Node
 
     public override void _PhysicsProcess(double delta)
     {
-        HandleInput(delta);
+        HandleMultipleInput(delta);
         GameLoopManagement(delta);
     }
 }

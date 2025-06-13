@@ -28,6 +28,7 @@ public partial class Rockford : Area2D, IGridItem
     private MoveDirection currentMoveDirection = MoveDirection.none;
     private double lastMoveTick = 0;
     private double idleInputDelayTime = 0;
+    private bool firePressed = false;
 
     public State rockfordState = State.Alive;
 
@@ -79,54 +80,60 @@ public partial class Rockford : Area2D, IGridItem
 
         Vector2I prevGridPosition = new(GridPosition.X, GridPosition.Y);
 
-        if (moveDirection == MoveDirection.up)
+        if (!firePressed)
         {
-            GridPosition.Y--;
-            currentPosition.Y -= 64;
-        }
+            if (moveDirection == MoveDirection.up)
+            {
+                GridPosition.Y--;
+                currentPosition.Y -= 64;
+            }
 
-        if (moveDirection == MoveDirection.left)
-        {
-            GridPosition.X--;
-            currentPosition.X -= 64;
-        }
+            if (moveDirection == MoveDirection.left)
+            {
+                GridPosition.X--;
+                currentPosition.X -= 64;
+            }
 
-        if (moveDirection == MoveDirection.right)
-        {
-            GridPosition.X++;
-            currentPosition.X += 64;
-        }
+            if (moveDirection == MoveDirection.right)
+            {
+                GridPosition.X++;
+                currentPosition.X += 64;
+            }
 
-        if (moveDirection == MoveDirection.down)
-        {
-            GridPosition.Y++;
-            currentPosition.Y += 64;
-        }
+            if (moveDirection == MoveDirection.down)
+            {
+                GridPosition.Y++;
+                currentPosition.Y += 64;
+            }
 
-        bool canPlayerMove = mainController.CanPlayerMove(GridPosition, moveDirection);
-        if (canPlayerMove)
-        {
-            PlayAnimation(moveDirection);
-            GlobalPosition = currentPosition;
+            bool canPlayerMove = mainController.CanRockfordMove(GridPosition, moveDirection);
+            if (canPlayerMove)
+            {
+                PlayAnimation(moveDirection);
+                GlobalPosition = currentPosition;
 
-            mainController.SwapGridItems(prevGridPosition, GridPosition, true);
+                mainController.SwapGridItems(prevGridPosition, GridPosition, true);
+            }
+            else
+            {
+                GridPosition = prevGridPosition;
+                currentPosition = GlobalPosition;
+            }
         }
         else
         {
-            GridPosition = prevGridPosition;
-            currentPosition = GlobalPosition;
+            mainController.RockfordFireAction(prevGridPosition, moveDirection);
         }
+
         GD.Print("Rockford next grid position " + GridPosition);
     }
 
-    public void Process(double delta)
+    private void HandleMultipleUserInput(double delta)
     {
-        if (rockfordState == State.Dead)
-            return;
-
-        base._PhysicsProcess(delta);
-
         Main.UserEvent inputEvent = mainController.GetInputEvent(delta);
+
+        firePressed = (inputEvent & Main.UserEvent.ueFire) == Main.UserEvent.ueFire;
+
         if (inputEvent == Main.UserEvent.ueNone)
         {
             idleInputDelayTime += delta;
@@ -136,27 +143,36 @@ public partial class Rockford : Area2D, IGridItem
                 Move(MoveDirection.none);
             }
         }
-        else if (inputEvent == Main.UserEvent.ueLeft)
+
+        if ((inputEvent & Main.UserEvent.ueLeft) == Main.UserEvent.ueLeft)
         {
             idleInputDelayTime = 0;
             Move(MoveDirection.left);
         }
-        else if (inputEvent == Main.UserEvent.ueRight)
+        else if ((inputEvent & Main.UserEvent.ueRight) == Main.UserEvent.ueRight)
         {
             idleInputDelayTime = 0;
             Move(MoveDirection.right);
         }
-        else if (inputEvent == Main.UserEvent.ueUp)
+        else if ((inputEvent & Main.UserEvent.ueUp) == Main.UserEvent.ueUp)
         {
             idleInputDelayTime = 0;
             Move(MoveDirection.up);
         }
-        else if (inputEvent == Main.UserEvent.ueDown)
+        else if ((inputEvent & Main.UserEvent.ueDown) == Main.UserEvent.ueDown)
         {
             idleInputDelayTime = 0;
             Move(MoveDirection.down);
         }
+    }
 
+    public void Process(double delta)
+    {
+        if (rockfordState == State.Dead)
+            return;
+
+        base._PhysicsProcess(delta);
+        HandleMultipleUserInput(delta);
     }
 
     public void Dead()
