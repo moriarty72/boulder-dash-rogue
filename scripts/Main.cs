@@ -29,6 +29,7 @@ public partial class Main : Node
     public int rockPerColumn = 10;
 
     private Rockford player;
+    private List<Rock> levelRocks = [];
 
     private PackedScene playerScene = GD.Load<PackedScene>("res://scenes//rockford.tscn");
     private PackedScene mudScene = GD.Load<PackedScene>("res://scenes//mud-1.tscn");
@@ -50,8 +51,9 @@ public partial class Main : Node
 
     private enum GameState
     {
+        gsInitialize,
         gsTitle,
-        gpPlay,
+        gsPlay,
         gsRockfordDead,
         gsGameOver
     }
@@ -61,10 +63,15 @@ public partial class Main : Node
     private double idleInputDelayTime = 0;
 
     private bool inputEnabled = true;
-    private GameState gameState = GameState.gpPlay;
+    private GameState gameState = GameState.gsInitialize;
 
     public override void _Ready()
     {
+    }
+
+    private void InitTestLevel()
+    {
+        CleanupLevelObjects();
         InitilizeLevelGrid();
         SpawnTestLevel();
         SpawnRockford();
@@ -99,6 +106,16 @@ public partial class Main : Node
         }
     }
 
+    private void CleanupLevelObjects()
+    {
+        levelGrid.ForEach(item =>
+        {
+            if (item.Type != ItemType.None)
+                item.NodeObject.QueueFree();
+        });
+        levelGrid = [];
+    }
+
     private GridItem GetGridItem(int x, int y)
     {
         int index = GetGridIndex(x, y);
@@ -119,13 +136,14 @@ public partial class Main : Node
     {
         int index = GetGridIndex(position.X, position.Y);
         levelGrid[index].Dead();
-        levelGrid[index] = new(ItemType.None, position, null);;
+        levelGrid[index] = new(ItemType.None, position, null); ;
     }
 
     private void SpawnTestLevel()
     {
         Random rnd = new(System.Environment.TickCount);
 
+        levelRocks = [];
         for (int x = 0; x < testLevelGridSize.X; x++)
         {
             int rockToSpawn = rockPerColumn;
@@ -151,6 +169,8 @@ public partial class Main : Node
 
                         rockToSpawn--;
                         AddGridItem(ItemType.Rock, x, y, rock);
+
+                        levelRocks.Add(rock);
                     }
                     else
                     {
@@ -193,7 +213,7 @@ public partial class Main : Node
         AddChild(player);
     }
 
-    public bool CanPlayerMove(Vector2I nextPlayerPosition)
+    public bool CanPlayerMove(Vector2I nextPlayerPosition, Rockford.MoveDirection rockfordDirection)
     {
         GridItem gridItem = GetGridItem(nextPlayerPosition.X, nextPlayerPosition.Y);
 
@@ -202,7 +222,22 @@ public partial class Main : Node
             switch (gridItem.Type)
             {
                 case ItemType.Rock:
-                    return false;
+                    {
+                        // check if the rock can move with Rockford (only left or right)
+                        if ((rockfordDirection == Rockford.MoveDirection.left) || (rockfordDirection == Rockford.MoveDirection.right))
+                        {
+                            // check empty space after rock
+                            int x = nextPlayerPosition.X + (rockfordDirection == Rockford.MoveDirection.left ? -1 : 1);
+                            GridItem afterRockGridItem = GetGridItem(x, nextPlayerPosition.Y);
+                            if (afterRockGridItem.Type == ItemType.None)
+                            {
+                                GD.Print("Rockford can move rock direction: " + rockfordDirection.ToString());
+                                (gridItem.NodeObject as Rock).UpdateCurrentState(rockfordDirection == Rockford.MoveDirection.left ? Rock.State.PushedLeft : Rock.State.PushedRight);
+                            }
+
+                        }
+                        return false;
+                    }
 
                 case ItemType.MetalWall:
                     return false;
@@ -211,23 +246,39 @@ public partial class Main : Node
         return true;
     }
 
-    public Rock.State CanRockFall(Vector2I rockPosition)
+    public Rock.State CheckRockState(Rock rockItem, Vector2I rockPosition)
     {
-        GridItem gridItem = GetGridItem(rockPosition.X, rockPosition.Y + 1);
-        if (gridItem.Type == ItemType.None)
-            return Rock.State.Fall;
-
-        if (gridItem.Type == ItemType.Rock)
+        switch (rockItem.CurrentState)
         {
-            gridItem = GetGridItem(rockPosition.X - 1, rockPosition.Y + 1);
-            GridItem gridItemLeft = GetGridItem(rockPosition.X - 1, rockPosition.Y);
-            if ((gridItem.Type == ItemType.None) && (gridItemLeft.Type == ItemType.None))
-                return Rock.State.FallLeft;
+            case Rock.State.Stand:
+                {
+                    GridItem gridItem = GetGridItem(rockPosition.X, rockPosition.Y + 1);
+                    if (gridItem.Type == ItemType.None)
+                        return Rock.State.Fall;
 
-            gridItem = GetGridItem(rockPosition.X + 1, rockPosition.Y + 1);
-            GridItem gridItemRight = GetGridItem(rockPosition.X + 1, rockPosition.Y);
-            if ((gridItem.Type == ItemType.None) && (gridItemRight.Type == ItemType.None))
-                return Rock.State.FallRight;
+                    if (gridItem.Type == ItemType.Rock)
+                    {
+                        if (rockItem.CurrentState == Rock.State.Stand)
+                        {
+                            gridItem = GetGridItem(rockPosition.X - 1, rockPosition.Y + 1);
+                            GridItem gridItemLeft = GetGridItem(rockPosition.X - 1, rockPosition.Y);
+                            if ((gridItem.Type == ItemType.None) && (gridItemLeft.Type == ItemType.None))
+                                return Rock.State.FallLeft;
+
+                            gridItem = GetGridItem(rockPosition.X + 1, rockPosition.Y + 1);
+                            GridItem gridItemRight = GetGridItem(rockPosition.X + 1, rockPosition.Y);
+                            if ((gridItem.Type == ItemType.None) && (gridItemRight.Type == ItemType.None))
+                                return Rock.State.FallRight;
+                        }
+                    }
+                    break;
+                }
+
+            case Rock.State.PushedRight:
+            case Rock.State.PushedLeft:
+                {
+                    return rockItem.CurrentState;
+                }
         }
         return Rock.State.Stand;
     }
@@ -291,9 +342,16 @@ public partial class Main : Node
     {
         switch (gameState)
         {
-            case GameState.gpPlay:
+            case GameState.gsInitialize:
                 {
-                    HandleInput(delta);
+                    gameState = GameState.gsPlay;
+                    InitTestLevel();
+                    break;
+                }
+
+            case GameState.gsPlay:
+                {
+                    ProcessGameObjects(delta);
                     break;
                 }
 
@@ -309,6 +367,12 @@ public partial class Main : Node
 
             case GameState.gsGameOver:
                 {
+                    UserEvent userEvent = GetInputEvent(delta);
+                    if (userEvent == UserEvent.ueFire)
+                        gameState = GameState.gsInitialize;
+
+                    ProcessGameObjects(delta);
+                    
                     break;
                 }
         }
@@ -351,8 +415,15 @@ public partial class Main : Node
             eventQueue.Enqueue(UserEvent.ueFire);
     }
 
+    private void ProcessGameObjects(double delta)
+    {
+        levelRocks.ForEach(rock => rock.Process(delta));
+        player.Process(delta);
+    }
+
     public override void _PhysicsProcess(double delta)
     {
+        HandleInput(delta);
         GameLoopManagement(delta);
     }
 }

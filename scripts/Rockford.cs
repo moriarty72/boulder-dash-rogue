@@ -103,7 +103,7 @@ public partial class Rockford : Area2D, IGridItem
             currentPosition.Y += 64;
         }
 
-        bool canPlayerMove = mainController.CanPlayerMove(GridPosition);
+        bool canPlayerMove = mainController.CanPlayerMove(GridPosition, moveDirection);
         if (canPlayerMove)
         {
             PlayAnimation(moveDirection);
@@ -119,7 +119,7 @@ public partial class Rockford : Area2D, IGridItem
         GD.Print("Rockford next grid position " + GridPosition);
     }
 
-    public override void _PhysicsProcess(double delta)
+    public void Process(double delta)
     {
         if (rockfordState == State.Dead)
             return;
@@ -157,17 +157,6 @@ public partial class Rockford : Area2D, IGridItem
             Move(MoveDirection.down);
         }
 
-    }
-
-    private void _on_player_body_entered(Node2D body)
-    {
-        // if (body is Rock)
-        // {
-        //     Rock rock = body as Rock;
-        //     GD.Print("Rockford collide " + rock.CurrentState);
-        // }
-
-        // mainController.OnPlayerCollide(body, GridPosition);
     }
 
     public void Dead()

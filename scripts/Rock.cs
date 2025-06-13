@@ -9,10 +9,14 @@ public partial class Rock : Area2D, IGridItem
         Stand,
         Fall,
         FallLeft,
-        FallRight
+        FallRight,
+        MoveRight,
+        MoveLeft,
+        PushedLeft,
+        PushedRight
     }
     [Export]
-    public double RockMoveDelay = 0.5;
+    public double RockMoveDelay = 0.0;
 
     public State CurrentState = State.Stand;
     public Vector2I GridPosition;
@@ -25,6 +29,20 @@ public partial class Rock : Area2D, IGridItem
         mainController = mc;
         currentPosition = GlobalPosition;
         GridPosition = gridPosition;
+    }
+
+    public void UpdateCurrentState(State newState)
+    {
+        CurrentState = newState;
+        GD.Print("UpdateCurrentStete for rock pos " + GridPosition);
+    }
+
+    private void UpdateGlobalPosition(Vector2 currentPosition, Vector2I prevGridPosition)
+    {
+        GlobalPosition = currentPosition;
+        mainController.SwapGridItems(prevGridPosition, GridPosition, false);
+
+        lastMoveTick = 0;
     }
 
     private void Move(double delta)
@@ -53,6 +71,7 @@ public partial class Rock : Area2D, IGridItem
                     break;
                 }
 
+            case State.MoveLeft:
             case State.FallLeft:
                 {
                     GridPosition.X--;
@@ -60,28 +79,45 @@ public partial class Rock : Area2D, IGridItem
                     break;
                 }
 
+            case State.MoveRight:
             case State.FallRight:
                 {
                     GridPosition.X++;
                     currentPosition.X += 64;
                     break;
                 }
+
+            case State.PushedLeft:
+                {
+                    GridPosition.X--;
+                    currentPosition.X -= 64;
+
+                    UpdateGlobalPosition(currentPosition, prevGridPosition);
+
+                    CurrentState = State.Stand;
+                    return;
+                }
+
+            case State.PushedRight:
+                {
+                    GridPosition.X++;
+                    currentPosition.X += 64;
+
+                    UpdateGlobalPosition(currentPosition, prevGridPosition);
+
+                    CurrentState = State.Stand;
+                    return;
+                }
+
         }
 
         mainController.CheckRockfordCollision(GridPosition, 0, 1);
-
-        GlobalPosition = currentPosition;
-        mainController.SwapGridItems(prevGridPosition, GridPosition, false);
-
-        lastMoveTick = 0;
-        // CurrentState = State.Stand;
+        UpdateGlobalPosition(currentPosition, prevGridPosition);
     }
 
-    public override void _PhysicsProcess(double delta)
+    public void Process(double delta)
     {
-        base._PhysicsProcess(delta);
-
-        CurrentState = mainController.CanRockFall(GridPosition);
+        CurrentState = mainController.CheckRockState(this, GridPosition);
         Move(delta);
     }
 
