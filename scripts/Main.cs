@@ -162,6 +162,7 @@ public partial class Main : Node
                 }
                 else
                 {
+                    // if ((x == 4) && (y == 4))
                     if ((x > 2) && (y > 2) && ((rnd.Next(1, 100) % 5) == 0) && (rockToSpawn > 0))
                     {
                         Rock rock = AddObject<Rock>(rockScene, x * SPRITE_WIDTH, y * SPRITE_HEIGHT);
@@ -335,12 +336,12 @@ public partial class Main : Node
             if (nextGridItem.NodeObject != null)
                 nextGridItem.Dead();
             levelGrid[prevIndex] = new(ItemType.None, prevGridItem.Position, null);
-            levelGrid[nextIndex] = new(prevGridItem.Type, prevGridItem.Position, prevGridItem.NodeObject);
+            levelGrid[nextIndex] = new(prevGridItem.Type, nextGridItem.Position, prevGridItem.NodeObject);
         }
         else
         {
-            levelGrid[prevIndex] = new(nextGridItem.Type, nextGridItem.Position, nextGridItem.NodeObject);
-            levelGrid[nextIndex] = new(prevGridItem.Type, prevGridItem.Position, prevGridItem.NodeObject);
+            levelGrid[prevIndex] = new(nextGridItem.Type, prevGridItem.Position, nextGridItem.NodeObject);
+            levelGrid[nextIndex] = new(prevGridItem.Type, nextGridItem.Position, prevGridItem.NodeObject);
         }
     }
 
