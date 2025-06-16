@@ -1,0 +1,85 @@
+[gd_scene load_steps=13 format=3 uid="uid://co8du6rnqxu7c"]
+
+[ext_resource type="Texture2D" uid="uid://c786pheb8tk31" path="res://assets/diamond.png" id="1_0a7ml"]
+[ext_resource type="Script" uid="uid://oqek16qwuih0" path="res://scripts/Diamond.cs" id="1_okr8r"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_okr8r"]
+atlas = ExtResource("1_0a7ml")
+region = Rect2(0, 0, 64, 64)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_bd64o"]
+atlas = ExtResource("1_0a7ml")
+region = Rect2(0, 64, 64, 64)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_up2nb"]
+atlas = ExtResource("1_0a7ml")
+region = Rect2(0, 128, 64, 64)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_p5v7i"]
+atlas = ExtResource("1_0a7ml")
+region = Rect2(0, 192, 64, 64)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_0fuo3"]
+atlas = ExtResource("1_0a7ml")
+region = Rect2(0, 256, 64, 64)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_mwpm2"]
+atlas = ExtResource("1_0a7ml")
+region = Rect2(0, 320, 64, 64)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_5l24h"]
+atlas = ExtResource("1_0a7ml")
+region = Rect2(0, 384, 64, 64)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_5n5jo"]
+atlas = ExtResource("1_0a7ml")
+region = Rect2(0, 448, 64, 64)
+
+[sub_resource type="SpriteFrames" id="SpriteFrames_wpdkq"]
+animations = [{
+"frames": [{
+"duration": 0.25,
+"texture": SubResource("AtlasTexture_okr8r")
+}, {
+"duration": 0.25,
+"texture": SubResource("AtlasTexture_bd64o")
+}, {
+"duration": 0.25,
+"texture": SubResource("AtlasTexture_up2nb")
+}, {
+"duration": 0.25,
+"texture": SubResource("AtlasTexture_p5v7i")
+}, {
+"duration": 0.25,
+"texture": SubResource("AtlasTexture_0fuo3")
+}, {
+"duration": 0.25,
+"texture": SubResource("AtlasTexture_mwpm2")
+}, {
+"duration": 0.25,
+"texture": SubResource("AtlasTexture_5l24h")
+}, {
+"duration": 0.25,
+"texture": SubResource("AtlasTexture_5n5jo")
+}],
+"loop": true,
+"name": &"default",
+"speed": 3.0
+}]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_0a7ml"]
+size = Vector2(64, 64)
+
+[node name="Diamond" type="Area2D"]
+script = ExtResource("1_okr8r")
+MoveDelay = 0.1
+
+[node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="."]
+texture_filter = 1
+position = Vector2(32, 32)
+sprite_frames = SubResource("SpriteFrames_wpdkq")
+autoplay = "default"
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+position = Vector2(32, 32)
+shape = SubResource("RectangleShape2D_0a7ml")

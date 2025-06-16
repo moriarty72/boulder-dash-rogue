@@ -171,7 +171,6 @@ public partial class Rockford : Area2D, IGridItem
         if (rockfordState == State.Dead)
             return;
 
-        base._PhysicsProcess(delta);
         HandleMultipleUserInput(delta);
     }
 

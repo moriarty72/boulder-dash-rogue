@@ -1,6 +1,7 @@
-[gd_scene load_steps=8 format=3 uid="uid://dfckajf4b5yd0"]
+[gd_scene load_steps=9 format=3 uid="uid://dfckajf4b5yd0"]
 
 [ext_resource type="Texture2D" uid="uid://bvp84id84dos8" path="res://assets/enemy-square.png" id="1_p1xl8"]
+[ext_resource type="Script" uid="uid://desresox44jg7" path="res://scripts/EnemySquare.cs" id="1_s48jo"]
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_s48jo"]
 atlas = ExtResource("1_p1xl8")
@@ -42,6 +43,7 @@ animations = [{
 size = Vector2(16, 16)
 
 [node name="Enemy-square" type="Area2D"]
+script = ExtResource("1_s48jo")
 
 [node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="."]
 texture_filter = 1

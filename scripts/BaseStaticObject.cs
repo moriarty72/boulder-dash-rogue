@@ -1,16 +1,7 @@
 using Godot;
 using System;
 
-public partial class Rock : BaseStaticObject, IGridItem
-{
-    public void Dead()
-    {
-        CurrentState = State.Dead;
-    }
-}
-
-/*
-public partial class Rock : Area2D, IGridItem
+public partial class BaseStaticObject : Area2D
 {
     public enum State
     {
@@ -25,7 +16,7 @@ public partial class Rock : Area2D, IGridItem
         PushedRight
     }
     [Export]
-    public double RockMoveDelay = 0.0;
+    public double MoveDelay = 0.0;
 
     public State CurrentState = State.Stand;
     public Vector2I GridPosition;
@@ -33,7 +24,7 @@ public partial class Rock : Area2D, IGridItem
     private Vector2 currentPosition;
     private double lastMoveTick = 0;
 
-    public void Initilize(Main mc, Vector2I gridPosition)
+    public virtual void Initilize(Main mc, Vector2I gridPosition)
     {
         mainController = mc;
         currentPosition = GlobalPosition;
@@ -64,7 +55,7 @@ public partial class Rock : Area2D, IGridItem
             lastMoveTick = delta;
         }
 
-        if (lastMoveTick <= RockMoveDelay)
+        if (lastMoveTick <= MoveDelay)
         {
             lastMoveTick += delta;
             return;
@@ -126,13 +117,10 @@ public partial class Rock : Area2D, IGridItem
 
     public void Process(double delta)
     {
+        if (CurrentState == State.Dead)
+            return;
+            
         CurrentState = mainController.CheckObjectState(this, GridPosition);
         Move(delta);
     }
-
-    public void Dead()
-    {
-        CurrentState = State.Dead;
-    }
 }
-*/
