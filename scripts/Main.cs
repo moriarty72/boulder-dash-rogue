@@ -1,7 +1,9 @@
 using Godot;
 using System;
 using System.Collections.Generic;
-using static BaseStaticObject;
+using System.Linq;
+using static BaseGridObject;
+using static FallingObject;
 
 public partial class Main : Node
 {
@@ -32,9 +34,7 @@ public partial class Main : Node
     [Export]
     public int diamondPerColumn = 10;
 
-    private Rockford player;
-    private List<GridItem> levelRocks = [];
-    private List<GridItem> levelDiamonds = [];
+    private BaseGridObject player;
 
     private PackedScene playerScene = GD.Load<PackedScene>("res://scenes//rockford.tscn");
     private PackedScene mudScene = GD.Load<PackedScene>("res://scenes//mud-1.tscn");
@@ -43,7 +43,7 @@ public partial class Main : Node
     private PackedScene metalWallScene = GD.Load<PackedScene>("res://scenes//metal-wall.tscn");
     private PackedScene explosionScene = GD.Load<PackedScene>("res://scenes//explosion.tscn");
 
-    private List<GridItem> levelGrid = [];
+    private List<BaseGridObject> levelGrid = [];
 
     public enum UserEvent
     {
@@ -89,12 +89,33 @@ public partial class Main : Node
         return index;
     }
 
-    private GridItem AddGridItem(ItemType type, int x, int y, Node2D nodeObject)
+    private BaseGridObject AddGridItem<T, K>(PackedScene packedScene, ItemType itemType, Vector2 worldPosition, Vector2I gridPosition) where T : Node2D where K : BaseGridObject, new()
+    {
+        K bgo = new();
+        bgo.Initialize<T>(this, packedScene, itemType, worldPosition, gridPosition);
+
+        int index = GetGridIndex(gridPosition.X, gridPosition.Y);
+        levelGrid[index] = bgo;
+
+        return bgo;
+    }
+
+    public BaseGridObject GetGridItem(int x, int y)
     {
         int index = GetGridIndex(x, y);
-        levelGrid[index] = new GridItem(type, x, y, nodeObject);
-
         return levelGrid[index];
+    }
+
+    public void RemoveGridItem(Vector2I position)
+    {
+        int index = GetGridIndex(position.X, position.Y);
+        levelGrid[index].Dead();
+    }
+
+    public void RemoveGridObject(BaseGridObject baseGridObject)
+    {
+        int index = levelGrid.IndexOf(baseGridObject);
+        levelGrid[index].Dead();
     }
 
     private void InitilizeLevelGrid()
@@ -119,39 +140,15 @@ public partial class Main : Node
         levelGrid.ForEach(item =>
         {
             if (item.Type != ItemType.None)
-                item.NodeObject.QueueFree();
+                item.Dead();
         });
         levelGrid = [];
-    }
-
-    private GridItem GetGridItem(int x, int y)
-    {
-        int index = GetGridIndex(x, y);
-        return levelGrid[index];
-    }
-
-    private T AddObject<T>(PackedScene packedScene, float x, float y) where T : Node2D
-    {
-        var obj = packedScene.Instantiate<T>();
-        obj.GlobalPosition = new(x, y);
-
-        AddChild(obj);
-
-        return obj;
-    }
-
-    public void RemoveGridItem(Vector2I position)
-    {
-        int index = GetGridIndex(position.X, position.Y);
-        levelGrid[index].Dead();
-        levelGrid[index] = new(ItemType.None, position, null); ;
     }
 
     private void SpawnTestLevel()
     {
         Random rnd = new(System.Environment.TickCount);
 
-        levelRocks = [];
         for (int x = 0; x < testLevelGridSize.X; x++)
         {
             int rockToSpawn = rockPerColumn;
@@ -167,32 +164,24 @@ public partial class Main : Node
 
                 if (isCorner || isSide)
                 {
-                    MetalWall metalWall = AddObject<MetalWall>(metalWallScene, x * SPRITE_WIDTH, y * SPRITE_HEIGHT);
-                    AddGridItem(ItemType.MetalWall, x, y, metalWall);
+                    AddGridItem<MetalWall, BaseGridObject>(metalWallScene, ItemType.MetalWall, new(x * SPRITE_WIDTH, y * SPRITE_HEIGHT), new(x, y));
                 }
                 else
                 {
                     // if ((x == 4) && (y == 4))
                     if ((x > 2) && (y > 2) && ((rnd.Next(1, 100) % 5) == 0) && (rockToSpawn > 0))
                     {
-                        Rock rock = AddObject<Rock>(rockScene, x * SPRITE_WIDTH, y * SPRITE_HEIGHT);
-                        rock.Initilize(this, new(x, y));
-
+                        AddGridItem<Rock, FallingObject>(rockScene, ItemType.Rock, new(x * SPRITE_WIDTH, y * SPRITE_HEIGHT), new(x, y));
                         rockToSpawn--;
-                        levelRocks.Add(AddGridItem(ItemType.Rock, x, y, rock));
                     }
                     else if ((x > 2) && (y > 2) && ((rnd.Next(1, 100) % 5) == 0) && (diamondToSpawn > 0))
                     {
-                        Diamond diamond = AddObject<Diamond>(diamondScene, x * SPRITE_WIDTH, y * SPRITE_HEIGHT);
-                        diamond.Initilize(this, new(x, y));
-
+                        AddGridItem<Diamond, FallingObject>(diamondScene, ItemType.Diamond, new(x * SPRITE_WIDTH, y * SPRITE_HEIGHT), new(x, y));
                         diamondToSpawn--;
-                        levelDiamonds.Add(AddGridItem(ItemType.Diamond, x, y, diamond));
                     }
                     else
                     {
-                        Mud1 mud1 = AddObject<Mud1>(mudScene, x * SPRITE_WIDTH, y * SPRITE_HEIGHT);
-                        AddGridItem(ItemType.Mud, x, y, mud1);
+                        AddGridItem<Mud1, BaseGridObject>(mudScene, ItemType.Mud, new(x * SPRITE_WIDTH, y * SPRITE_HEIGHT), new(x, y));
                     }
                 }
             }
@@ -216,27 +205,23 @@ public partial class Main : Node
 
     private void SpawnRockford()
     {
-        player = playerScene.Instantiate<Rockford>();
-        player.Initilize(this, new(testRockfordPosition.X * SPRITE_WIDTH, testRockfordPosition.Y * SPRITE_HEIGHT), testRockfordPosition);
+        player = AddGridItem<Rockford, BaseGridObject>(playerScene, ItemType.Rockford, new(testRockfordPosition.X * SPRITE_WIDTH, testRockfordPosition.Y * SPRITE_HEIGHT), testRockfordPosition);
 
         Camera2D camera2D = GetNode<Camera2D>("Camera2D");
         RemoteTransform2D remoteTransform2D = new()
         {
             RemotePath = camera2D.GetPath()
         };
-        player.AddChild(remoteTransform2D);
-
-        AddGridItem(ItemType.Rockford, testRockfordPosition.X, testRockfordPosition.Y, player);
-        AddChild(player);
+        player.nodeObject.AddChild(remoteTransform2D);
     }
 
-    private bool CanRockfordPushRock(GridItem rockGridItem, Vector2I nextPlayerPosition, Rockford.MoveDirection rockfordDirection)
+    private bool CanRockfordPushRock(BaseGridObject gridObject, Vector2I nextPlayerPosition, Rockford.MoveDirection rockfordDirection)
     {
         if ((rockfordDirection == Rockford.MoveDirection.left) || (rockfordDirection == Rockford.MoveDirection.right))
         {
             // check empty space after rock
-            int x = rockGridItem.Position.X + (rockfordDirection == Rockford.MoveDirection.left ? -1 : 1);
-            GridItem afterRockGridItem = GetGridItem(x, nextPlayerPosition.Y);
+            int x = gridObject.GridPosition.X + (rockfordDirection == Rockford.MoveDirection.left ? -1 : 1);
+            BaseGridObject afterRockGridItem = GetGridItem(x, nextPlayerPosition.Y);
             if (afterRockGridItem.Type == ItemType.None)
             {
                 GD.Print("Rockford can move rock direction: " + rockfordDirection.ToString());
@@ -248,7 +233,7 @@ public partial class Main : Node
 
     public bool CanRockfordMove(Vector2I nextPlayerPosition, Rockford.MoveDirection rockfordDirection)
     {
-        GridItem gridItem = GetGridItem(nextPlayerPosition.X, nextPlayerPosition.Y);
+        BaseGridObject gridItem = GetGridItem(nextPlayerPosition.X, nextPlayerPosition.Y);
 
         if (gridItem != null)
         {
@@ -257,15 +242,13 @@ public partial class Main : Node
                 case ItemType.Rock:
                     {
                         if (CanRockfordPushRock(gridItem, nextPlayerPosition, rockfordDirection))
-                            (gridItem.NodeObject as Rock).UpdateCurrentState(rockfordDirection == Rockford.MoveDirection.left ? State.PushedLeft : State.PushedRight);
+                            (gridItem as FallingObject).CurrentState = rockfordDirection == Rockford.MoveDirection.left ? State.PushedLeft : State.PushedRight;
                         return false;
                     }
 
                 case ItemType.Diamond:
                     {
-                        gridItem.Dead();
-                        levelDiamonds.Remove(gridItem);
-
+                        RemoveGridItem(gridItem.GridPosition);
                         return true;
                     }
 
@@ -276,46 +259,9 @@ public partial class Main : Node
         return true;
     }
 
-    public State CheckObjectState(BaseStaticObject objectItem, Vector2I rockPosition)
-    {
-        switch (objectItem.CurrentState)
-        {
-            case State.Stand:
-                {
-                    GridItem gridItem = GetGridItem(rockPosition.X, rockPosition.Y + 1);
-                    if (gridItem.Type == ItemType.None)
-                        return State.Fall;
-
-                    if ((gridItem.Type == ItemType.Rock) || (gridItem.Type == ItemType.Diamond))
-                    {
-                        if (objectItem.CurrentState == State.Stand)
-                        {
-                            gridItem = GetGridItem(rockPosition.X - 1, rockPosition.Y + 1);
-                            GridItem gridItemLeft = GetGridItem(rockPosition.X - 1, rockPosition.Y);
-                            if ((gridItem.Type == ItemType.None) && (gridItemLeft.Type == ItemType.None))
-                                return State.FallLeft;
-
-                            gridItem = GetGridItem(rockPosition.X + 1, rockPosition.Y + 1);
-                            GridItem gridItemRight = GetGridItem(rockPosition.X + 1, rockPosition.Y);
-                            if ((gridItem.Type == ItemType.None) && (gridItemRight.Type == ItemType.None))
-                                return State.FallRight;
-                        }
-                    }
-                    break;
-                }
-
-            case State.PushedRight:
-            case State.PushedLeft:
-                {
-                    return objectItem.CurrentState;
-                }
-        }
-        return State.Stand;
-    }
-
     public bool CheckRockfordCollision(Vector2I rockPosition, int offsetX, int offsetY)
     {
-        GridItem gridItem = GetGridItem(rockPosition.X + offsetX, rockPosition.Y + offsetY);
+        BaseGridObject gridItem = GetGridItem(rockPosition.X + offsetX, rockPosition.Y + offsetY);
         if (gridItem.Type == ItemType.Rockford)
         {
             GD.Print("ROCKFORD DEAD !!!!!!");
@@ -327,7 +273,7 @@ public partial class Main : Node
 
     public void RockfordFireAction(Vector2I position, Rockford.MoveDirection direction)
     {
-        GridItem gridItem = null;
+        BaseGridObject gridItem = null;
 
         if (direction == Rockford.MoveDirection.up)
             gridItem = GetGridItem(position.X, position.Y - 1);
@@ -339,11 +285,11 @@ public partial class Main : Node
             gridItem = GetGridItem(position.X + 1, position.Y);
 
         if (gridItem.Type == ItemType.Mud)
-            RemoveGridItem(gridItem.Position);
+            RemoveGridItem(gridItem.GridPosition);
         else if (gridItem.Type == ItemType.Rock)
         {
             if (CanRockfordPushRock(gridItem, position, direction))
-                (gridItem.NodeObject as Rock).UpdateCurrentState(direction == Rockford.MoveDirection.left ? Rock.State.PushedLeft : Rock.State.PushedRight);
+                (gridItem as FallingObject).CurrentState = direction == Rockford.MoveDirection.left ? State.PushedLeft : State.PushedRight;
         }
     }
 
@@ -352,39 +298,39 @@ public partial class Main : Node
         int prevIndex = GetGridIndex(prevPosition.X, prevPosition.Y);
         int nextIndex = GetGridIndex(newPosition.X, newPosition.Y);
 
-        GridItem prevGridItem = levelGrid[prevIndex];
-        GridItem nextGridItem = levelGrid[nextIndex];
+        BaseGridObject prevGridItem = levelGrid[prevIndex];
+        BaseGridObject nextGridItem = levelGrid[nextIndex];
 
         if (replaceNext)
         {
-            if (nextGridItem.NodeObject != null)
-                nextGridItem.Dead();
-            levelGrid[prevIndex] = new(ItemType.None, prevGridItem.Position, null);
-            levelGrid[nextIndex] = new(prevGridItem.Type, nextGridItem.Position, prevGridItem.NodeObject);
+            nextGridItem.Dead();
+            levelGrid[prevIndex] = nextGridItem;
+            levelGrid[nextIndex] = prevGridItem;
         }
         else
         {
-            levelGrid[prevIndex] = new(nextGridItem.Type, prevGridItem.Position, nextGridItem.NodeObject);
-            levelGrid[nextIndex] = new(prevGridItem.Type, nextGridItem.Position, prevGridItem.NodeObject);
+            levelGrid[prevIndex] = nextGridItem;
+            levelGrid[nextIndex] = prevGridItem;
         }
     }
 
     private void SpawnRockfordDead(Vector2I position)
     {
-        player.Dead();
+        RemoveGridItem((player as BaseGridObject).GridPosition);
 
         for (int x = position.X - 1; x < position.X + 2; x++)
         {
             for (int y = position.Y - 1; y < position.Y + 2; y++)
             {
-                GridItem gridItem = GetGridItem(x, y);
+                BaseGridObject gridItem = GetGridItem(x, y);
                 if (gridItem.Type != ItemType.MetalWall)
                 {
-                    Explosion explosion = AddObject<Explosion>(explosionScene, x * SPRITE_WIDTH, y * SPRITE_HEIGHT);
-                    explosion.Initilize(this, new(x, y));
-
                     RemoveGridItem(new(x, y));
-                    AddGridItem(ItemType.Explosion, x, y, explosion);
+                    BaseGridObject bgo = AddGridItem<Explosion, BaseGridObject>(explosionScene, ItemType.Explosion, new(x * SPRITE_WIDTH, y * SPRITE_HEIGHT), new(x, y));
+                    (bgo.nodeObject as Explosion).AnimationEnd += () =>
+                    {
+                        RemoveGridObject(bgo);
+                    };
                 }
             }
         }
@@ -510,9 +456,10 @@ public partial class Main : Node
 
     private void ProcessGameObjects(double delta)
     {
-        levelRocks.ForEach(rock => (rock.NodeObject as Rock).Process(delta));
-        levelDiamonds.ForEach(diamond => (diamond.NodeObject as Diamond).Process(delta));
-        player.Process(delta);
+        for (int i = 0; i < levelGrid.Count; i++)
+            levelGrid[i].Process(delta);
+
+        // levelGrid.ForEach(gridObject => gridObject.Process(delta));
     }
 
     public override void _PhysicsProcess(double delta)

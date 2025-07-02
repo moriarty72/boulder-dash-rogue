@@ -1,10 +1,9 @@
 using Godot;
 using System;
 
-public partial class Mud1 : Area2D, IGridItem
+public partial class Mud1 : Area2D
 {
-    public void Dead()
+    public Mud1()
     {
-        
     }
 }

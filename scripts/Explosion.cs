@@ -1,10 +1,13 @@
 using Godot;
 using System;
 
-public partial class Explosion : Area2D, IGridItem
+public partial class Explosion : Area2D
 {
-    public Vector2I GridPosition;
-    private Main mainController;
+    public event Action AnimationEnd;
+
+    public Explosion()
+    {
+    }
 
     public override void _Ready()
     {
@@ -14,17 +17,7 @@ public partial class Explosion : Area2D, IGridItem
 
     public void OnAnimationEnd()
     {
-        mainController.RemoveGridItem(GridPosition);
-    }
-
-    public void Initilize(Main mc, Vector2I gridPosition)
-    {
-        mainController = mc;
-        GridPosition = gridPosition;
-    }
-
-    public void Dead()
-    {
-        
+        // mainController.RemoveGridItem(GridPosition);
+        AnimationEnd?.Invoke();
     }
 }

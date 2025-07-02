@@ -1,7 +1,7 @@
 using Godot;
 using System;
 
-public partial class EnemySquare : Area2D, IGridItem
+public partial class EnemySquare : BaseGridObject
 {
     public enum State
     {
@@ -15,10 +15,7 @@ public partial class EnemySquare : Area2D, IGridItem
     [Export]
     public double MoveDelay = 0.0;
 
-    public State CurrentState = State.Alive;
-
-    public void Dead()
+    public EnemySquare()
     {
-
     }
 }

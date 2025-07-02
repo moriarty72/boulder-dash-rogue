@@ -1,12 +1,18 @@
 using Godot;
 using System;
+using static FallingObject;
 
-public partial class Rock : BaseStaticObject, IGridItem
+public partial class Rock : Area2D, IBaseGridObject
 {
-    public void Dead()
+    public Rock()
     {
-        CurrentState = State.Dead;
     }
+
+    public void Process(Main mainController, BaseGridObject gridObject, double delta)
+    {
+
+    }
+
 }
 
 /*

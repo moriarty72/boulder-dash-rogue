@@ -1,7 +1,7 @@
 using Godot;
 using System;
 
-public partial class Rockford : Area2D, IGridItem
+public partial class Rockford : Area2D, IBaseGridObject
 {
     public enum State
     {
@@ -18,10 +18,6 @@ public partial class Rockford : Area2D, IGridItem
         none
     };
 
-    public Vector2I GridPosition;
-
-    private Main mainController;
-
     private AnimatedSprite2D animatedSprite2D;
     private Vector2 currentPosition;
     private MoveDirection lastHorizontalMove = MoveDirection.right;
@@ -32,18 +28,19 @@ public partial class Rockford : Area2D, IGridItem
 
     public State rockfordState = State.Alive;
 
-    public void Initilize(Main mc, Vector2 position, Vector2I gridPosition)
+    public Rockford()
     {
-        mainController = mc;
-        currentPosition = position;
-        GlobalPosition = currentPosition;
-        GridPosition = gridPosition;
+
     }
 
     public override void _Ready()
     {
+        base._Ready();
+
         animatedSprite2D = GetNode<AnimatedSprite2D>("AnimatedSprite2D");
         animatedSprite2D.Play("stand");
+
+        currentPosition = GlobalPosition;
     }
 
     private void PlayAnimation(MoveDirection moveDirection)
@@ -70,7 +67,7 @@ public partial class Rockford : Area2D, IGridItem
             animatedSprite2D.Play("stand");
     }
 
-    public void Move(MoveDirection moveDirection)
+    public void Move(Main mainController, BaseGridObject gridObject, MoveDirection moveDirection)
     {
         if (moveDirection == MoveDirection.none)
         {
@@ -78,46 +75,46 @@ public partial class Rockford : Area2D, IGridItem
             return;
         }
 
-        Vector2I prevGridPosition = new(GridPosition.X, GridPosition.Y);
+        Vector2I prevGridPosition = new(gridObject.GridPosition.X, gridObject.GridPosition.Y);
 
         if (!firePressed)
         {
             if (moveDirection == MoveDirection.up)
             {
-                GridPosition.Y--;
+                gridObject.GridPosition.Y--;
                 currentPosition.Y -= 64;
             }
 
             if (moveDirection == MoveDirection.left)
             {
-                GridPosition.X--;
+                gridObject.GridPosition.X--;
                 currentPosition.X -= 64;
             }
 
             if (moveDirection == MoveDirection.right)
             {
-                GridPosition.X++;
+                gridObject.GridPosition.X++;
                 currentPosition.X += 64;
             }
 
             if (moveDirection == MoveDirection.down)
             {
-                GridPosition.Y++;
+                gridObject.GridPosition.Y++;
                 currentPosition.Y += 64;
             }
 
-            bool canPlayerMove = mainController.CanRockfordMove(GridPosition, moveDirection);
+            bool canPlayerMove = mainController.CanRockfordMove(gridObject.GridPosition, moveDirection);
             if (canPlayerMove)
             {
                 PlayAnimation(moveDirection);
-                GlobalPosition = currentPosition;
+                gridObject.nodeObject.GlobalPosition = currentPosition;
 
-                mainController.SwapGridItems(prevGridPosition, GridPosition, true);
+                mainController.SwapGridItems(prevGridPosition, gridObject.GridPosition, true);
             }
             else
             {
-                GridPosition = prevGridPosition;
-                currentPosition = GlobalPosition;
+                gridObject.GridPosition = prevGridPosition;
+                currentPosition = gridObject.nodeObject.GlobalPosition;
             }
         }
         else
@@ -125,10 +122,10 @@ public partial class Rockford : Area2D, IGridItem
             mainController.RockfordFireAction(prevGridPosition, moveDirection);
         }
 
-        GD.Print("Rockford next grid position " + GridPosition);
+        GD.Print("Rockford next grid position " + gridObject.GridPosition + " prev position " + prevGridPosition);
     }
 
-    private void HandleMultipleUserInput(double delta)
+    private void HandleMultipleUserInput(Main mainController, BaseGridObject gridObject, double delta)
     {
         Main.UserEvent inputEvent = mainController.GetInputEvent(delta);
 
@@ -140,42 +137,37 @@ public partial class Rockford : Area2D, IGridItem
             if (idleInputDelayTime > 0.15)
             {
                 idleInputDelayTime = 0;
-                Move(MoveDirection.none);
+                Move(mainController, gridObject, MoveDirection.none);
             }
         }
 
         if ((inputEvent & Main.UserEvent.ueLeft) == Main.UserEvent.ueLeft)
         {
             idleInputDelayTime = 0;
-            Move(MoveDirection.left);
+            Move(mainController, gridObject, MoveDirection.left);
         }
         else if ((inputEvent & Main.UserEvent.ueRight) == Main.UserEvent.ueRight)
         {
             idleInputDelayTime = 0;
-            Move(MoveDirection.right);
+            Move(mainController, gridObject, MoveDirection.right);
         }
         else if ((inputEvent & Main.UserEvent.ueUp) == Main.UserEvent.ueUp)
         {
             idleInputDelayTime = 0;
-            Move(MoveDirection.up);
+            Move(mainController, gridObject, MoveDirection.up);
         }
         else if ((inputEvent & Main.UserEvent.ueDown) == Main.UserEvent.ueDown)
         {
             idleInputDelayTime = 0;
-            Move(MoveDirection.down);
+            Move(mainController, gridObject, MoveDirection.down);
         }
     }
 
-    public void Process(double delta)
+    public void Process(Main mainController, BaseGridObject gridObject, double delta)
     {
         if (rockfordState == State.Dead)
             return;
 
-        HandleMultipleUserInput(delta);
-    }
-
-    public void Dead()
-    {
-        rockfordState = State.Dead;
+        HandleMultipleUserInput(mainController, gridObject, delta);
     }
 }
