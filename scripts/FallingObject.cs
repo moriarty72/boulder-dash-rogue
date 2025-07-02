@@ -70,7 +70,7 @@ public partial class FallingObject : BaseGridObject
         if ((CurrentState == State.Stand) || (CurrentState == State.Dead))
             return;
 
-        if ((lastMoveTick == 0) || (lastMoveTick <= 0.1))
+        if ((lastMoveTick == 0) || (lastMoveTick <= 0.08))
         {
             lastMoveTick += delta;
             return;
@@ -135,7 +135,7 @@ public partial class FallingObject : BaseGridObject
     {
         if (Type == ItemType.None)
             return;
-            
+
         CurrentState = CheckAndUpdateCurrentState();
         Move(delta);
     }
