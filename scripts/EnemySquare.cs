@@ -1,20 +1,8 @@
 using Godot;
 using System;
 
-public partial class EnemySquare : BaseGridObject
+public partial class EnemySquare : Area2D
 {
-    public enum State
-    {
-        Alive,
-        Dead,
-        MoveRight,
-        MoveLeft,
-        MoveUp,
-        MoveDown
-    }
-    [Export]
-    public double MoveDelay = 0.0;
-
     public EnemySquare()
     {
     }

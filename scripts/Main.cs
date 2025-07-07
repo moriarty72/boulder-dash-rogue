@@ -34,6 +34,9 @@ public partial class Main : Node
     [Export]
     public int diamondPerColumn = 10;
 
+    [Export]
+    public int enemyCount = 4;
+
     private BaseGridObject player;
 
     private PackedScene playerScene = GD.Load<PackedScene>("res://scenes//rockford.tscn");
@@ -147,8 +150,39 @@ public partial class Main : Node
 
     private void SpawnTestLevel()
     {
+        void spawnEmptyLevel()
+        {
+            for (int x = 0; x < testLevelGridSize.X; x++)
+            {
+                for (int y = 0; y < testLevelGridSize.Y; y++)
+                {
+                    if ((x == testRockfordPosition.X) && (y == testRockfordPosition.Y))
+                        continue;
+
+                    bool isCorner = ((x == 0) && (y == 0)) || ((x == 0) && (y == (testLevelGridSize.Y - 1))) || ((x == (testLevelGridSize.X - 1)) && (y == 0)) || ((x == (testLevelGridSize.X - 1)) && (y == (testLevelGridSize.Y - 1)));
+                    bool isSide = ((x > 0) && (x < testLevelGridSize.X) && ((y == 0) || (y == (testLevelGridSize.Y - 1)))) || ((y > 0) && (y < testLevelGridSize.Y) && ((x == 0) || (x == (testLevelGridSize.X - 1))));
+
+                    if (isCorner || isSide)
+                    {
+                        AddGridItem<MetalWall, BaseGridObject>(metalWallScene, ItemType.MetalWall, new(x * SPRITE_WIDTH, y * SPRITE_HEIGHT), new(x, y));
+                    }
+                    else
+                    {
+                        AddGridItem<Mud1, BaseGridObject>(mudScene, ItemType.Mud, new(x * SPRITE_WIDTH, y * SPRITE_HEIGHT), new(x, y));
+                    }
+                }
+            }
+        }
+
+        void spawnEnemies()
+        {
+            
+        }
         Random rnd = new(System.Environment.TickCount);
 
+        spawnEmptyLevel();
+
+        /*
         for (int x = 0; x < testLevelGridSize.X; x++)
         {
             int rockToSpawn = rockPerColumn;
@@ -186,6 +220,7 @@ public partial class Main : Node
                 }
             }
         }
+        */
     }
 
     public UserEvent GetInputEvent(double delta)
@@ -212,7 +247,7 @@ public partial class Main : Node
         {
             RemotePath = camera2D.GetPath()
         };
-        player.nodeObject.AddChild(remoteTransform2D);
+        player.NodeObject.AddChild(remoteTransform2D);
     }
 
     private bool CanRockfordPushRock(BaseGridObject gridObject, Vector2I nextPlayerPosition, Rockford.MoveDirection rockfordDirection)
@@ -222,7 +257,8 @@ public partial class Main : Node
             // check empty space after rock
             int x = gridObject.GridPosition.X + (rockfordDirection == Rockford.MoveDirection.left ? -1 : 1);
             BaseGridObject afterRockGridItem = GetGridItem(x, nextPlayerPosition.Y);
-            if (afterRockGridItem.Type == ItemType.None)
+            BaseGridObject belowRockGridItem = GetGridItem(nextPlayerPosition.X, nextPlayerPosition.Y + 1);
+            if ((afterRockGridItem.Type == ItemType.None) && (belowRockGridItem.Type != ItemType.None))
             {
                 GD.Print("Rockford can move rock direction: " + rockfordDirection.ToString());
                 return true;
@@ -291,6 +327,10 @@ public partial class Main : Node
             if (CanRockfordPushRock(gridItem, position, direction))
                 (gridItem as FallingObject).CurrentState = direction == Rockford.MoveDirection.left ? State.PushedLeft : State.PushedRight;
         }
+        else if (gridItem.Type == ItemType.Diamond)
+        {
+            RemoveGridItem(gridItem.GridPosition);
+        }
     }
 
     public void SwapGridItems(Vector2I prevPosition, Vector2I newPosition, bool replaceNext)
@@ -327,7 +367,7 @@ public partial class Main : Node
                 {
                     RemoveGridItem(new(x, y));
                     BaseGridObject bgo = AddGridItem<Explosion, BaseGridObject>(explosionScene, ItemType.Explosion, new(x * SPRITE_WIDTH, y * SPRITE_HEIGHT), new(x, y));
-                    (bgo.nodeObject as Explosion).AnimationEnd += () =>
+                    (bgo.NodeObject as Explosion).AnimationEnd += () =>
                     {
                         RemoveGridObject(bgo);
                     };

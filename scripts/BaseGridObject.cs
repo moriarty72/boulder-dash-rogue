@@ -24,7 +24,7 @@ public class BaseGridObject
 
     protected Main mainController;
     public Vector2 WorldPosition;
-    public Node2D nodeObject { get; private set; }
+    public Node2D NodeObject { get; private set; }
 
     public BaseGridObject() 
     {
@@ -39,10 +39,10 @@ public class BaseGridObject
         WorldPosition = worldPosition;
         GridPosition = gridPosition;
 
-        nodeObject = packedScene.Instantiate<T>();
-        nodeObject.GlobalPosition = worldPosition;
+        NodeObject = packedScene.Instantiate<T>();
+        NodeObject.GlobalPosition = worldPosition;
 
-        mainController.AddChild(nodeObject);
+        mainController.AddChild(NodeObject);
     }
 
     public virtual void Process(double delta)
@@ -50,14 +50,14 @@ public class BaseGridObject
         if (Type == ItemType.None)
             return;
             
-        (nodeObject as IBaseGridObject)?.Process(mainController, this, delta);
+        (NodeObject as IBaseGridObject)?.Process(mainController, this, delta);
     }
 
     public void Dead()
     {
         if (Type != ItemType.None)
         {
-            nodeObject.QueueFree();
+            NodeObject.QueueFree();
             Type = ItemType.None;
         }
     }

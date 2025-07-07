@@ -61,7 +61,7 @@ public partial class FallingObject : BaseGridObject
 
     private void UpdateNodeObjectPosition(Vector2 currentPosition, Vector2I prevGridPosition)
     {
-        nodeObject.GlobalPosition = currentPosition;
+        NodeObject.GlobalPosition = currentPosition;
         mainController.SwapGridItems(prevGridPosition, GridPosition, false);
     }
 

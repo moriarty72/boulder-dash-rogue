@@ -107,14 +107,14 @@ public partial class Rockford : Area2D, IBaseGridObject
             if (canPlayerMove)
             {
                 PlayAnimation(moveDirection);
-                gridObject.nodeObject.GlobalPosition = currentPosition;
+                gridObject.NodeObject.GlobalPosition = currentPosition;
 
                 mainController.SwapGridItems(prevGridPosition, gridObject.GridPosition, true);
             }
             else
             {
                 gridObject.GridPosition = prevGridPosition;
-                currentPosition = gridObject.nodeObject.GlobalPosition;
+                currentPosition = gridObject.NodeObject.GlobalPosition;
             }
         }
         else
