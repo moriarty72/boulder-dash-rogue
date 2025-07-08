@@ -45,6 +45,7 @@ public partial class Main : Node
     private PackedScene diamondScene = GD.Load<PackedScene>("res://scenes//diamond.tscn");
     private PackedScene metalWallScene = GD.Load<PackedScene>("res://scenes//metal-wall.tscn");
     private PackedScene explosionScene = GD.Load<PackedScene>("res://scenes//explosion.tscn");
+    private PackedScene enemySquareScene = GD.Load<PackedScene>("res://scenes//enemy-square.tscn");
 
     private List<BaseGridObject> levelGrid = [];
 
@@ -150,6 +151,8 @@ public partial class Main : Node
 
     private void SpawnTestLevel()
     {
+        Random rnd = new(System.Environment.TickCount);
+
         void spawnEmptyLevel()
         {
             for (int x = 0; x < testLevelGridSize.X; x++)
@@ -176,11 +179,22 @@ public partial class Main : Node
 
         void spawnEnemies()
         {
-            
+            Vector2I enemyBoxSize = new(rnd.Next(2, 6), rnd.Next(2, 6));
+            Vector2I enemyBoxPosition = new(rnd.Next(6, testLevelGridSize.X - 6), rnd.Next(6, testLevelGridSize.Y - 6));
+
+            for (int x = enemyBoxPosition.X; x < enemyBoxPosition.X + enemyBoxSize.X; x++)
+            {
+                for (int y = enemyBoxPosition.Y; y < enemyBoxPosition.Y + enemyBoxSize.Y; y++)
+                {
+                    RemoveGridItem(new(x, y));
+                }
+            }
+
+            AddGridItem<EnemySquare, EnemySquareObject>(enemySquareScene, ItemType.EnemySquare, new(enemyBoxPosition.X * SPRITE_WIDTH, enemyBoxPosition.Y * SPRITE_HEIGHT), new(enemyBoxPosition.X, enemyBoxPosition.Y));
         }
-        Random rnd = new(System.Environment.TickCount);
 
         spawnEmptyLevel();
+        spawnEnemies();
 
         /*
         for (int x = 0; x < testLevelGridSize.X; x++)

@@ -11,8 +11,8 @@ public enum ItemType
     Door,
     DoorOpen,
     Diamond,
-    Butterfly,
-    Explosion
+    Explosion,
+    EnemySquare
 }
 
 public class BaseGridObject 

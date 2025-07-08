@@ -30,7 +30,9 @@ public partial class EnemySquareObject : BaseGridObject
             BaseGridObject upMoveObject = mainController.GetGridItem(upMovePosition.X, upMovePosition.Y);
             if (upMoveObject.Type == ItemType.None)
             {
-                NodeObject.GlobalPosition = upMovePosition;
+                mainController.SwapGridItems(GridPosition, upMovePosition, false);
+                NodeObject.GlobalPosition = new(upMovePosition.X * 64, upMovePosition.Y * 64);
+                GridPosition = upMovePosition;
                 return;
             }
 
@@ -39,7 +41,9 @@ public partial class EnemySquareObject : BaseGridObject
             BaseGridObject leftMoveObject = mainController.GetGridItem(leftMovePosition.X, leftMovePosition.Y);
             if (leftMoveObject.Type == ItemType.None)
             {
-                NodeObject.GlobalPosition = leftMovePosition;
+                mainController.SwapGridItems(GridPosition, leftMovePosition, false);
+                NodeObject.GlobalPosition = new(leftMovePosition.X * 64, leftMovePosition.Y * 64);
+                GridPosition = leftMovePosition;
                 return;
             }
 
@@ -52,7 +56,9 @@ public partial class EnemySquareObject : BaseGridObject
             BaseGridObject downMoveObject = mainController.GetGridItem(downMovePosition.X, downMovePosition.Y);
             if (downMoveObject.Type == ItemType.None)
             {
-                NodeObject.GlobalPosition = downMovePosition;
+                mainController.SwapGridItems(GridPosition, downMovePosition, false);
+                NodeObject.GlobalPosition = new(downMovePosition.X * 64, downMovePosition.Y * 64);
+                GridPosition = downMovePosition;
                 return;
             }
 
@@ -61,7 +67,9 @@ public partial class EnemySquareObject : BaseGridObject
             BaseGridObject rightMoveObject = mainController.GetGridItem(rightMovePosition.X, rightMovePosition.Y);
             if (rightMoveObject.Type == ItemType.None)
             {
-                NodeObject.GlobalPosition = rightMovePosition;
+                mainController.SwapGridItems(GridPosition, rightMovePosition, false);
+                NodeObject.GlobalPosition = new(rightMovePosition.X * 64, rightMovePosition.Y * 64);
+                GridPosition = rightMovePosition;
                 return;
             }
 
