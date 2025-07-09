@@ -7,22 +7,22 @@ public partial class EnemySquareObject : BaseGridObject
 {
     private enum MoveState
     {
+        None,
+        MoveUp,
+        MoveRight,
+        MoveDown,
+        MoveLeft,
         MoveLeftUp,
         MoveRightDown
     }
 
-    private MoveState moveState = MoveState.MoveLeftUp;
+    private MoveState moveState = MoveState.MoveUp;
+    private MoveState lastHorizontalMove = MoveState.MoveRight;
+    private MoveState lastVerticalMove = MoveState.MoveUp;
     private double lastMoveTick = 0;
 
-    private void Move(double delta)
+    private void MoveOLD(double delta)
     {
-        if ((lastMoveTick == 0) || (lastMoveTick <= 0.10))
-        {
-            lastMoveTick += delta;
-            return;
-        }
-        lastMoveTick = 0;
-
         if (moveState == MoveState.MoveLeftUp)
         {
             // try to move UP
@@ -77,8 +77,70 @@ public partial class EnemySquareObject : BaseGridObject
         }
     }
 
+    private void UpdatePosition(Vector2I newPosition)
+    {
+        mainController.SwapGridItems(GridPosition, newPosition, false);
+        NodeObject.GlobalPosition = new(newPosition.X * 64, newPosition.Y * 64);
+        GridPosition = newPosition;
+    }
+
+    private void Move(double delta)
+    {
+        Vector2I nextMovePosition = GridPosition;
+        MoveState nextMoveState = MoveState.None;
+
+        switch (moveState)
+        {
+            case MoveState.MoveUp:
+                {
+                    nextMovePosition = new(GridPosition.X, GridPosition.Y - 1);
+                    nextMoveState = (lastHorizontalMove == MoveState.MoveRight) ? MoveState.MoveLeft : MoveState.MoveRight;
+                    lastVerticalMove = MoveState.MoveUp;
+                    break;
+                }
+
+            case MoveState.MoveRight:
+                {
+                    nextMovePosition = new(GridPosition.X + 1, GridPosition.Y);
+                    nextMoveState = (lastVerticalMove == MoveState.MoveUp) ? MoveState.MoveDown : MoveState.MoveUp;
+                    lastHorizontalMove = MoveState.MoveRight;
+                    break;
+                }
+
+            case MoveState.MoveDown:
+                {
+                    nextMovePosition = new(GridPosition.X, GridPosition.Y + 1);
+                    nextMoveState = (lastHorizontalMove == MoveState.MoveRight) ? MoveState.MoveLeft : MoveState.MoveRight;
+                    lastVerticalMove = MoveState.MoveDown;
+                    break;
+                }
+
+            case MoveState.MoveLeft:
+                {
+                    nextMovePosition = new(GridPosition.X - 1, GridPosition.Y);
+                    nextMoveState = (lastVerticalMove == MoveState.MoveUp) ? MoveState.MoveDown : MoveState.MoveUp;
+                    lastHorizontalMove = MoveState.MoveLeft;
+                    break;
+                }
+
+        }
+
+        BaseGridObject gridObject = mainController.GetGridItem(nextMovePosition.X, nextMovePosition.Y);
+        if (gridObject.Type == ItemType.None)
+            UpdatePosition(nextMovePosition);
+        else
+            moveState = nextMoveState;
+    }
+
     public override void Process(double delta)
     {
+        if ((lastMoveTick == 0) || (lastMoveTick <= 0.10))
+        {
+            lastMoveTick += delta;
+            return;
+        }
+        lastMoveTick = 0;
+
         Move(delta);
     }
 }
