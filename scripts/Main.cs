@@ -179,8 +179,8 @@ public partial class Main : Node
 
         void spawnEnemies()
         {
-            Vector2I enemyBoxSize = new(rnd.Next(2, 6), rnd.Next(2, 6));
-            Vector2I enemyBoxPosition = new(rnd.Next(6, testLevelGridSize.X - 6), rnd.Next(6, testLevelGridSize.Y - 6));
+            Vector2I enemyBoxSize = new(5, 5); //rnd.Next(2, 6), rnd.Next(2, 6));
+            Vector2I enemyBoxPosition = new(5, 5); // rnd.Next(6, testLevelGridSize.X - 6), rnd.Next(6, testLevelGridSize.Y - 6));
 
             for (int x = enemyBoxPosition.X; x < enemyBoxPosition.X + enemyBoxSize.X; x++)
             {
