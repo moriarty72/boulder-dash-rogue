@@ -122,7 +122,7 @@ public partial class Rockford : Area2D, IBaseGridObject
             mainController.RockfordFireAction(prevGridPosition, moveDirection);
         }
 
-        GD.Print("Rockford next grid position " + gridObject.GridPosition + " prev position " + prevGridPosition);
+        // GD.Print("Rockford next grid position " + gridObject.GridPosition + " prev position " + prevGridPosition);
     }
 
     private void HandleMultipleUserInput(Main mainController, BaseGridObject gridObject, double delta)

@@ -29,7 +29,7 @@ public partial class Main : Node
     public Vector2I testRockfordPosition = new(1, 1);
 
     [Export]
-    public int rockPerColumn = 10;
+    public int rockCount = 10;
 
     [Export]
     public int diamondPerColumn = 10;
@@ -180,7 +180,7 @@ public partial class Main : Node
         void spawnEnemies()
         {
             Vector2I enemyBoxSize = new(5, 5); //rnd.Next(2, 6), rnd.Next(2, 6));
-            Vector2I enemyBoxPosition = new(5, 5); // rnd.Next(6, testLevelGridSize.X - 6), rnd.Next(6, testLevelGridSize.Y - 6));
+            Vector2I enemyBoxPosition = new(7, 7); // rnd.Next(6, testLevelGridSize.X - 6), rnd.Next(6, testLevelGridSize.Y - 6));
 
             for (int x = enemyBoxPosition.X; x < enemyBoxPosition.X + enemyBoxSize.X; x++)
             {
@@ -193,8 +193,21 @@ public partial class Main : Node
             AddGridItem<EnemySquare, EnemySquareObject>(enemySquareScene, ItemType.EnemySquare, new(enemyBoxPosition.X * SPRITE_WIDTH, enemyBoxPosition.Y * SPRITE_HEIGHT), new(enemyBoxPosition.X, enemyBoxPosition.Y));
         }
 
+        void spawnRocks()
+        {
+            int x = 3;
+            int y = 3;
+
+            for (int i = 0; i < rockCount; i++)
+            {
+            }
+
+            AddGridItem<Rock, FallingObject>(rockScene, ItemType.Rock, new(x * SPRITE_WIDTH, y * SPRITE_HEIGHT), new(x, y));
+        }
+
         spawnEmptyLevel();
         spawnEnemies();
+        spawnRocks();
 
         /*
         for (int x = 0; x < testLevelGridSize.X; x++)
@@ -309,13 +322,26 @@ public partial class Main : Node
         return true;
     }
 
-    public bool CheckRockfordCollision(Vector2I rockPosition, int offsetX, int offsetY)
+    public bool CheckObjectCollision(Vector2I objectPosition, int offsetX, int offsetY, BaseGridObject gridObject)
     {
-        BaseGridObject gridItem = GetGridItem(rockPosition.X + offsetX, rockPosition.Y + offsetY);
+        BaseGridObject gridItem = GetGridItem(objectPosition.X + offsetX, objectPosition.Y + offsetY);
         if (gridItem.Type == ItemType.Rockford)
         {
-            GD.Print("ROCKFORD DEAD !!!!!!");
+            RemoveGridItem((player as BaseGridObject).GridPosition);
+            RemoveGridObject(gridObject);
+
+            SpawnExplosion(player.GridPosition);
+
             gameState = GameState.gsRockfordDead;
+            return true;
+        }
+        else if (gridItem.Type == ItemType.EnemySquare)
+        {
+            RemoveGridItem(gridItem.GridPosition);
+            RemoveGridObject(gridObject);
+
+            SpawnExplosion(gridItem.GridPosition);
+            return true;
         }
 
         return false;
@@ -368,10 +394,8 @@ public partial class Main : Node
         }
     }
 
-    private void SpawnRockfordDead(Vector2I position)
+    private void SpawnExplosion(Vector2I position)
     {
-        RemoveGridItem((player as BaseGridObject).GridPosition);
-
         for (int x = position.X - 1; x < position.X + 2; x++)
         {
             for (int y = position.Y - 1; y < position.Y + 2; y++)
@@ -410,10 +434,6 @@ public partial class Main : Node
             case GameState.gsRockfordDead:
                 {
                     gameState = GameState.gsGameOver;
-
-                    GD.Print("Spawn Rockford dead animation " + player.GridPosition);
-                    SpawnRockfordDead(player.GridPosition);
-
                     break;
                 }
 

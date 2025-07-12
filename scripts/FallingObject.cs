@@ -127,8 +127,8 @@ public partial class FallingObject : BaseGridObject
 
         }
 
-        mainController.CheckRockfordCollision(GridPosition, 0, 1);
-        UpdateNodeObjectPosition(WorldPosition, prevGridPosition);
+        if (!mainController.CheckObjectCollision(GridPosition, 0, 1, this))
+            UpdateNodeObjectPosition(WorldPosition, prevGridPosition);
     }
 
     public override void Process(double delta)
@@ -138,5 +138,6 @@ public partial class FallingObject : BaseGridObject
 
         CurrentState = CheckAndUpdateCurrentState();
         Move(delta);
+
     }
 }
