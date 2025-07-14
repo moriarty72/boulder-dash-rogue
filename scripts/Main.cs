@@ -195,19 +195,28 @@ public partial class Main : Node
 
         void spawnRocks()
         {
-            int x = 3;
+            Vector2I[] rockPositions = [new(3, 3), new(3, 4)];
+
+            for (int i = 0; i < rockPositions.Length; i++)
+            {
+                RemoveGridItem(rockPositions[i]);
+                AddGridItem<Rock, FallingObject>(rockScene, ItemType.Rock, new(rockPositions[i].X * SPRITE_WIDTH, rockPositions[i].Y * SPRITE_HEIGHT), rockPositions[i]);
+            }
+        }
+
+        void spawnDiamonds()
+        {
+            int x = 4;
             int y = 3;
 
-            for (int i = 0; i < rockCount; i++)
-            {
-            }
-
-            AddGridItem<Rock, FallingObject>(rockScene, ItemType.Rock, new(x * SPRITE_WIDTH, y * SPRITE_HEIGHT), new(x, y));
+            RemoveGridItem(new(x, y));
+            AddGridItem<Diamond, FallingObject>(diamondScene, ItemType.Diamond, new(x * SPRITE_WIDTH, y * SPRITE_HEIGHT), new(x, y));
         }
 
         spawnEmptyLevel();
         spawnEnemies();
         spawnRocks();
+        spawnDiamonds();
 
         /*
         for (int x = 0; x < testLevelGridSize.X; x++)
@@ -528,12 +537,45 @@ public partial class Main : Node
         eventQueue.Enqueue(userEvents);
     }
 
+    private bool CheckCollisions(BaseGridObject bgo)
+    {
+        // check collision with falling objects (rocks, diamonds) and rockford
+        if (((bgo.Type == ItemType.Rock) || (bgo.Type == ItemType.Diamond)) && ((bgo as FallingObject).CurrentState == State.Fall))
+        {
+            BaseGridObject gridItem = GetGridItem(bgo.GridPosition.X, bgo.GridPosition.Y + 1);
+            if (gridItem.Type == ItemType.Rockford)
+            {
+                GD.Print("Rockford DEAD!!!");
+
+                RemoveGridItem((player as BaseGridObject).GridPosition);
+                RemoveGridObject(bgo);
+
+                SpawnExplosion(player.GridPosition);
+
+                gameState = GameState.gsRockfordDead;
+
+                return false;
+            }
+            else if (gridItem.Type == ItemType.EnemySquare)
+            {
+                RemoveGridObject(gridItem);
+                RemoveGridObject(bgo);
+
+                SpawnExplosion(gridItem.GridPosition);                
+            }
+        }
+
+        return true;
+    }
+
     private void ProcessGameObjects(double delta)
     {
         for (int i = 0; i < levelGrid.Count; i++)
+        {
             levelGrid[i].Process(delta);
-
-        // levelGrid.ForEach(gridObject => gridObject.Process(delta));
+            if (CheckCollisions(levelGrid[i]))
+                levelGrid[i].Update(delta);
+        }
     }
 
     public override void _PhysicsProcess(double delta)

@@ -4,6 +4,8 @@ using System.Dynamic;
 
 public partial class FallingObject : BaseGridObject
 {
+    private const double FALL_SPEED = 0.07;
+
     public enum State
     {
         Dead,
@@ -59,25 +61,30 @@ public partial class FallingObject : BaseGridObject
         return State.Stand;
     }
 
-    private void UpdateNodeObjectPosition(Vector2 currentPosition, Vector2I prevGridPosition)
+    private void UpdateNodeObjectPosition()
     {
-        NodeObject.GlobalPosition = currentPosition;
-        mainController.SwapGridItems(prevGridPosition, GridPosition, false);
+        if (PrevGridPosition != GridPosition)
+        {
+            NodeObject.GlobalPosition = WorldPosition;
+            mainController.SwapGridItems(PrevGridPosition, GridPosition, true);
+
+            PrevGridPosition = GridPosition;
+        }
     }
 
-    private void Move(double delta)
+    private void ProcessPosition(double delta)
     {
         if ((CurrentState == State.Stand) || (CurrentState == State.Dead))
             return;
 
-        if ((lastMoveTick == 0) || (lastMoveTick <= 0.08))
+        if ((lastMoveTick == 0) || (lastMoveTick <= FALL_SPEED))
         {
             lastMoveTick += delta;
             return;
         }
         lastMoveTick = 0;
 
-        Vector2I prevGridPosition = new(GridPosition.X, GridPosition.Y);
+        PrevGridPosition = new(GridPosition.X, GridPosition.Y);
         switch (CurrentState)
         {
             case State.Fall:
@@ -108,8 +115,6 @@ public partial class FallingObject : BaseGridObject
                     GridPosition.X--;
                     WorldPosition.X -= 64;
 
-                    UpdateNodeObjectPosition(WorldPosition, prevGridPosition);
-
                     CurrentState = State.Stand;
                     return;
                 }
@@ -119,25 +124,37 @@ public partial class FallingObject : BaseGridObject
                     GridPosition.X++;
                     WorldPosition.X += 64;
 
-                    UpdateNodeObjectPosition(WorldPosition, prevGridPosition);
-
                     CurrentState = State.Stand;
                     return;
                 }
-
         }
+    }
 
-        if (!mainController.CheckObjectCollision(GridPosition, 0, 1, this))
-            UpdateNodeObjectPosition(WorldPosition, prevGridPosition);
+    private void Move(double delta)
+    {
+        UpdateNodeObjectPosition();
     }
 
     public override void Process(double delta)
     {
-        if (Type == ItemType.None)
+        if (CurrentState == State.Dead)
             return;
 
         CurrentState = CheckAndUpdateCurrentState();
-        Move(delta);
+        ProcessPosition(delta);
+    }
 
+    public override void Update(double delta)
+    {
+        if ((CurrentState == State.Dead) || (CurrentState == State.Stand))
+            return;
+
+        Move(delta);
+    }
+
+    public override void Dead()
+    {
+        base.Dead();
+        CurrentState = State.Dead;
     }
 }

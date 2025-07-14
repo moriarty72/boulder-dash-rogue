@@ -21,6 +21,7 @@ public class BaseGridObject
 
     public ItemType Type;
     public Vector2I GridPosition;
+    public Vector2I PrevGridPosition;
 
     protected Main mainController;
     public Vector2 WorldPosition;
@@ -38,6 +39,7 @@ public class BaseGridObject
         Type = itemType;
         WorldPosition = worldPosition;
         GridPosition = gridPosition;
+        PrevGridPosition = gridPosition;
 
         NodeObject = packedScene.Instantiate<T>();
         NodeObject.GlobalPosition = worldPosition;
@@ -53,11 +55,18 @@ public class BaseGridObject
         (NodeObject as IBaseGridObject)?.Process(mainController, this, delta);
     }
 
-    public void Dead()
+    public virtual void Update(double delta)
+    {
+
+    }
+
+    public virtual void Dead()
     {
         if (Type != ItemType.None)
         {
             NodeObject.QueueFree();
+            NodeObject = null;
+            
             Type = ItemType.None;
         }
     }

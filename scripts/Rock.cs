@@ -2,17 +2,11 @@ using Godot;
 using System;
 using static FallingObject;
 
-public partial class Rock : Area2D, IBaseGridObject
+public partial class Rock : Area2D
 {
     public Rock()
     {
     }
-
-    public void Process(Main mainController, BaseGridObject gridObject, double delta)
-    {
-
-    }
-
 }
 
 /*

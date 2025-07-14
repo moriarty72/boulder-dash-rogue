@@ -170,4 +170,9 @@ public partial class Rockford : Area2D, IBaseGridObject
 
         HandleMultipleUserInput(mainController, gridObject, delta);
     }
+
+    public void Update(Main mainController, BaseGridObject gridObject, double delta)
+    {
+        
+    }
 }
