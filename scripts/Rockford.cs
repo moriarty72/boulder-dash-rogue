@@ -1,6 +1,52 @@
 using Godot;
 using System;
+using static RockfordController;
 
+public partial class Rockford : Area2D
+{
+    private AnimatedSprite2D animatedSprite2D;
+    private MoveDirection lastHorizontalMove = MoveDirection.right;
+    private MoveDirection currentMoveDirection = MoveDirection.none;
+
+    public Rockford()
+    {
+
+    }
+
+    public override void _Ready()
+    {
+        base._Ready();
+
+        animatedSprite2D = GetNode<AnimatedSprite2D>("AnimatedSprite2D");
+        animatedSprite2D.Play("stand");
+    }
+
+    public void PlayAnimation(MoveDirection moveDirection)
+    {
+        if (currentMoveDirection == moveDirection)
+            return;
+
+        currentMoveDirection = moveDirection;
+        if (moveDirection == MoveDirection.left)
+        {
+            animatedSprite2D.Play("left");
+            lastHorizontalMove = MoveDirection.left;
+        }
+        else if (moveDirection == MoveDirection.right)
+        {
+            animatedSprite2D.Play("right");
+            lastHorizontalMove = MoveDirection.right;
+        }
+        else if ((moveDirection == MoveDirection.up) || (moveDirection == MoveDirection.down))
+        {
+            PlayAnimation(lastHorizontalMove);
+        }
+        else if (moveDirection == MoveDirection.none)
+            animatedSprite2D.Play("stand");
+    }
+}
+
+/*
 public partial class Rockford : Area2D, IBaseGridObject
 {
     public enum State
@@ -43,7 +89,7 @@ public partial class Rockford : Area2D, IBaseGridObject
         currentPosition = GlobalPosition;
     }
 
-    private void PlayAnimation(MoveDirection moveDirection)
+    public void PlayAnimation(MoveDirection moveDirection)
     {
         if (currentMoveDirection == moveDirection)
             return;
@@ -173,6 +219,7 @@ public partial class Rockford : Area2D, IBaseGridObject
 
     public void Update(Main mainController, BaseGridObject gridObject, double delta)
     {
-        
+
     }
 }
+*/

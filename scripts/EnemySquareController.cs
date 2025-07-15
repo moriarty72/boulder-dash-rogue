@@ -3,7 +3,7 @@ using System;
 using System.Data;
 using System.Dynamic;
 
-public partial class EnemySquareObject : BaseGridObject
+public partial class EnemySquareController : BaseGridObjectController
 {
     private double lastMoveTick = 0;
 
@@ -23,7 +23,7 @@ public partial class EnemySquareObject : BaseGridObject
             Vector2I nextPosition = new(GridPosition.X + nextDirection.X, GridPosition.Y + nextDirection.Y);
             Vector2I nextMovePosition = new(nextPosition.X, nextPosition.Y);
 
-            BaseGridObject gridObject = mainController.GetGridItem(nextMovePosition.X, nextMovePosition.Y);
+            BaseGridObjectController gridObject = mainController.GetGridItem(nextMovePosition.X, nextMovePosition.Y);
             return gridObject.Type == ItemType.None;
         }
 
@@ -40,7 +40,7 @@ public partial class EnemySquareObject : BaseGridObject
         Vector2I nextPosition = new(GridPosition.X + moveDirection.X, GridPosition.Y + moveDirection.Y);
         Vector2I nextMovePosition = new(nextPosition.X, nextPosition.Y);
 
-        BaseGridObject gridObject = mainController.GetGridItem(nextMovePosition.X, nextMovePosition.Y);
+        BaseGridObjectController gridObject = mainController.GetGridItem(nextMovePosition.X, nextMovePosition.Y);
         if (gridObject.Type == ItemType.None)
         {
             UpdatePosition(nextMovePosition);

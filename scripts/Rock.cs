@@ -1,6 +1,6 @@
 using Godot;
 using System;
-using static FallingObject;
+using static FallingObjectController;
 
 public partial class Rock : Area2D
 {

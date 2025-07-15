@@ -15,7 +15,7 @@ public enum ItemType
     EnemySquare
 }
 
-public class BaseGridObject 
+public class BaseGridObjectController
 {
     public Guid ID;
 
@@ -27,7 +27,7 @@ public class BaseGridObject
     public Vector2 WorldPosition;
     public Node2D NodeObject { get; private set; }
 
-    public BaseGridObject() 
+    public BaseGridObjectController()
     {
 
     }
@@ -47,11 +47,22 @@ public class BaseGridObject
         mainController.AddChild(NodeObject);
     }
 
+    protected void UpdateNodeObjectPosition()
+    {
+        if (PrevGridPosition != GridPosition)
+        {
+            NodeObject.GlobalPosition = new(GridPosition.X * 64, GridPosition.Y * 64);
+            mainController.SwapGridItems(PrevGridPosition, GridPosition, true);
+
+            PrevGridPosition = GridPosition;
+        }
+    }
+
     public virtual void Process(double delta)
     {
         if (Type == ItemType.None)
             return;
-            
+
         (NodeObject as IBaseGridObject)?.Process(mainController, this, delta);
     }
 
@@ -66,7 +77,7 @@ public class BaseGridObject
         {
             NodeObject.QueueFree();
             NodeObject = null;
-            
+
             Type = ItemType.None;
         }
     }

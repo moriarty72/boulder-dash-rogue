@@ -2,9 +2,9 @@ using Godot;
 using System;
 using System.Dynamic;
 
-public partial class FallingObject : BaseGridObject
+public partial class FallingObjectController : BaseGridObjectController
 {
-    private const double FALL_SPEED = 0.07;
+    private const double FALL_SPEED = 0.068;
 
     public enum State
     {
@@ -31,7 +31,7 @@ public partial class FallingObject : BaseGridObject
                     if (CurrentState == State.Stand)
                     {
                         // check if rock or diamond must fall
-                        BaseGridObject gridItem = mainController.GetGridItem(GridPosition.X, GridPosition.Y + 1);
+                        BaseGridObjectController gridItem = mainController.GetGridItem(GridPosition.X, GridPosition.Y + 1);
                         if (gridItem.Type == ItemType.None)
                             return State.Fall;
 
@@ -39,12 +39,12 @@ public partial class FallingObject : BaseGridObject
                         {
                             // check if rock or diamond must fall left/right
                             gridItem = mainController.GetGridItem(GridPosition.X - 1, GridPosition.Y + 1);
-                            BaseGridObject gridItemLeft = mainController.GetGridItem(GridPosition.X - 1, GridPosition.Y);
+                            BaseGridObjectController gridItemLeft = mainController.GetGridItem(GridPosition.X - 1, GridPosition.Y);
                             if ((gridItem.Type == ItemType.None) && (gridItemLeft.Type == ItemType.None))
                                 return State.FallLeft;
 
                             gridItem = mainController.GetGridItem(GridPosition.X + 1, GridPosition.Y + 1);
-                            BaseGridObject gridItemRight = mainController.GetGridItem(GridPosition.X + 1, GridPosition.Y);
+                            BaseGridObjectController gridItemRight = mainController.GetGridItem(GridPosition.X + 1, GridPosition.Y);
                             if ((gridItem.Type == ItemType.None) && (gridItemRight.Type == ItemType.None))
                                 return State.FallRight;
                         }
@@ -59,17 +59,6 @@ public partial class FallingObject : BaseGridObject
                 }
         }
         return State.Stand;
-    }
-
-    private void UpdateNodeObjectPosition()
-    {
-        if (PrevGridPosition != GridPosition)
-        {
-            NodeObject.GlobalPosition = WorldPosition;
-            mainController.SwapGridItems(PrevGridPosition, GridPosition, true);
-
-            PrevGridPosition = GridPosition;
-        }
     }
 
     private void ProcessPosition(double delta)

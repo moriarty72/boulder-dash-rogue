@@ -2,8 +2,9 @@ using Godot;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using static BaseGridObject;
-using static FallingObject;
+using static BaseGridObjectController;
+using static FallingObjectController;
+using static RockfordController;
 
 public partial class Main : Node
 {
@@ -37,7 +38,7 @@ public partial class Main : Node
     [Export]
     public int enemyCount = 4;
 
-    private BaseGridObject player;
+    private BaseGridObjectController player;
 
     private PackedScene playerScene = GD.Load<PackedScene>("res://scenes//rockford.tscn");
     private PackedScene mudScene = GD.Load<PackedScene>("res://scenes//mud-1.tscn");
@@ -47,7 +48,7 @@ public partial class Main : Node
     private PackedScene explosionScene = GD.Load<PackedScene>("res://scenes//explosion.tscn");
     private PackedScene enemySquareScene = GD.Load<PackedScene>("res://scenes//enemy-square.tscn");
 
-    private List<BaseGridObject> levelGrid = [];
+    private List<BaseGridObjectController> levelGrid = [];
 
     public enum UserEvent
     {
@@ -93,7 +94,7 @@ public partial class Main : Node
         return index;
     }
 
-    private BaseGridObject AddGridItem<T, K>(PackedScene packedScene, ItemType itemType, Vector2 worldPosition, Vector2I gridPosition) where T : Node2D where K : BaseGridObject, new()
+    private BaseGridObjectController AddGridItem<T, K>(PackedScene packedScene, ItemType itemType, Vector2 worldPosition, Vector2I gridPosition) where T : Node2D where K : BaseGridObjectController, new()
     {
         K bgo = new();
         bgo.Initialize<T>(this, packedScene, itemType, worldPosition, gridPosition);
@@ -104,7 +105,7 @@ public partial class Main : Node
         return bgo;
     }
 
-    public BaseGridObject GetGridItem(int x, int y)
+    public BaseGridObjectController GetGridItem(int x, int y)
     {
         int index = GetGridIndex(x, y);
         return levelGrid[index];
@@ -116,7 +117,7 @@ public partial class Main : Node
         levelGrid[index].Dead();
     }
 
-    public void RemoveGridObject(BaseGridObject baseGridObject)
+    public void RemoveGridObject(BaseGridObjectController baseGridObject)
     {
         int index = levelGrid.IndexOf(baseGridObject);
         levelGrid[index].Dead();
@@ -167,11 +168,11 @@ public partial class Main : Node
 
                     if (isCorner || isSide)
                     {
-                        AddGridItem<MetalWall, BaseGridObject>(metalWallScene, ItemType.MetalWall, new(x * SPRITE_WIDTH, y * SPRITE_HEIGHT), new(x, y));
+                        AddGridItem<MetalWall, BaseGridObjectController>(metalWallScene, ItemType.MetalWall, new(x * SPRITE_WIDTH, y * SPRITE_HEIGHT), new(x, y));
                     }
                     else
                     {
-                        AddGridItem<Mud1, BaseGridObject>(mudScene, ItemType.Mud, new(x * SPRITE_WIDTH, y * SPRITE_HEIGHT), new(x, y));
+                        AddGridItem<Mud1, BaseGridObjectController>(mudScene, ItemType.Mud, new(x * SPRITE_WIDTH, y * SPRITE_HEIGHT), new(x, y));
                     }
                 }
             }
@@ -190,7 +191,7 @@ public partial class Main : Node
                 }
             }
 
-            AddGridItem<EnemySquare, EnemySquareObject>(enemySquareScene, ItemType.EnemySquare, new(enemyBoxPosition.X * SPRITE_WIDTH, enemyBoxPosition.Y * SPRITE_HEIGHT), new(enemyBoxPosition.X, enemyBoxPosition.Y));
+            AddGridItem<EnemySquare, EnemySquareController>(enemySquareScene, ItemType.EnemySquare, new(enemyBoxPosition.X * SPRITE_WIDTH, enemyBoxPosition.Y * SPRITE_HEIGHT), new(enemyBoxPosition.X, enemyBoxPosition.Y));
         }
 
         void spawnRocks()
@@ -200,7 +201,7 @@ public partial class Main : Node
             for (int i = 0; i < rockPositions.Length; i++)
             {
                 RemoveGridItem(rockPositions[i]);
-                AddGridItem<Rock, FallingObject>(rockScene, ItemType.Rock, new(rockPositions[i].X * SPRITE_WIDTH, rockPositions[i].Y * SPRITE_HEIGHT), rockPositions[i]);
+                AddGridItem<Rock, FallingObjectController>(rockScene, ItemType.Rock, new(rockPositions[i].X * SPRITE_WIDTH, rockPositions[i].Y * SPRITE_HEIGHT), rockPositions[i]);
             }
         }
 
@@ -210,7 +211,7 @@ public partial class Main : Node
             int y = 3;
 
             RemoveGridItem(new(x, y));
-            AddGridItem<Diamond, FallingObject>(diamondScene, ItemType.Diamond, new(x * SPRITE_WIDTH, y * SPRITE_HEIGHT), new(x, y));
+            AddGridItem<Diamond, FallingObjectController>(diamondScene, ItemType.Diamond, new(x * SPRITE_WIDTH, y * SPRITE_HEIGHT), new(x, y));
         }
 
         spawnEmptyLevel();
@@ -276,7 +277,7 @@ public partial class Main : Node
 
     private void SpawnRockford()
     {
-        player = AddGridItem<Rockford, BaseGridObject>(playerScene, ItemType.Rockford, new(testRockfordPosition.X * SPRITE_WIDTH, testRockfordPosition.Y * SPRITE_HEIGHT), testRockfordPosition);
+        player = AddGridItem<Rockford, RockfordController>(playerScene, ItemType.Rockford, new(testRockfordPosition.X * SPRITE_WIDTH, testRockfordPosition.Y * SPRITE_HEIGHT), testRockfordPosition);
 
         Camera2D camera2D = GetNode<Camera2D>("Camera2D");
         RemoteTransform2D remoteTransform2D = new()
@@ -286,14 +287,14 @@ public partial class Main : Node
         player.NodeObject.AddChild(remoteTransform2D);
     }
 
-    private bool CanRockfordPushRock(BaseGridObject gridObject, Vector2I nextPlayerPosition, Rockford.MoveDirection rockfordDirection)
+    private bool CanRockfordPushRock(BaseGridObjectController gridObject, Vector2I nextPlayerPosition, MoveDirection rockfordDirection)
     {
-        if ((rockfordDirection == Rockford.MoveDirection.left) || (rockfordDirection == Rockford.MoveDirection.right))
+        if ((rockfordDirection == MoveDirection.left) || (rockfordDirection == MoveDirection.right))
         {
             // check empty space after rock
-            int x = gridObject.GridPosition.X + (rockfordDirection == Rockford.MoveDirection.left ? -1 : 1);
-            BaseGridObject afterRockGridItem = GetGridItem(x, nextPlayerPosition.Y);
-            BaseGridObject belowRockGridItem = GetGridItem(nextPlayerPosition.X, nextPlayerPosition.Y + 1);
+            int x = gridObject.GridPosition.X + (rockfordDirection == MoveDirection.left ? -1 : 1);
+            BaseGridObjectController afterRockGridItem = GetGridItem(x, nextPlayerPosition.Y);
+            BaseGridObjectController belowRockGridItem = GetGridItem(nextPlayerPosition.X, nextPlayerPosition.Y + 1);
             if ((afterRockGridItem.Type == ItemType.None) && (belowRockGridItem.Type != ItemType.None))
             {
                 GD.Print("Rockford can move rock direction: " + rockfordDirection.ToString());
@@ -303,9 +304,9 @@ public partial class Main : Node
         return false;
     }
 
-    public bool CanRockfordMove(Vector2I nextPlayerPosition, Rockford.MoveDirection rockfordDirection)
+    public bool CanRockfordMove(Vector2I nextPlayerPosition, MoveDirection rockfordDirection)
     {
-        BaseGridObject gridItem = GetGridItem(nextPlayerPosition.X, nextPlayerPosition.Y);
+        BaseGridObjectController gridItem = GetGridItem(nextPlayerPosition.X, nextPlayerPosition.Y);
 
         if (gridItem != null)
         {
@@ -314,7 +315,7 @@ public partial class Main : Node
                 case ItemType.Rock:
                     {
                         if (CanRockfordPushRock(gridItem, nextPlayerPosition, rockfordDirection))
-                            (gridItem as FallingObject).CurrentState = rockfordDirection == Rockford.MoveDirection.left ? State.PushedLeft : State.PushedRight;
+                            (gridItem as FallingObjectController).CurrentState = rockfordDirection == MoveDirection.left ? FallingObjectController.State.PushedLeft : FallingObjectController.State.PushedRight;
                         return false;
                     }
 
@@ -331,12 +332,12 @@ public partial class Main : Node
         return true;
     }
 
-    public bool CheckObjectCollision(Vector2I objectPosition, int offsetX, int offsetY, BaseGridObject gridObject)
+    public bool CheckObjectCollision(Vector2I objectPosition, int offsetX, int offsetY, BaseGridObjectController gridObject)
     {
-        BaseGridObject gridItem = GetGridItem(objectPosition.X + offsetX, objectPosition.Y + offsetY);
+        BaseGridObjectController gridItem = GetGridItem(objectPosition.X + offsetX, objectPosition.Y + offsetY);
         if (gridItem.Type == ItemType.Rockford)
         {
-            RemoveGridItem((player as BaseGridObject).GridPosition);
+            RemoveGridItem((player as BaseGridObjectController).GridPosition);
             RemoveGridObject(gridObject);
 
             SpawnExplosion(player.GridPosition);
@@ -356,17 +357,17 @@ public partial class Main : Node
         return false;
     }
 
-    public void RockfordFireAction(Vector2I position, Rockford.MoveDirection direction)
+    public void RockfordFireAction(Vector2I position, MoveDirection direction)
     {
-        BaseGridObject gridItem = null;
+        BaseGridObjectController gridItem = null;
 
-        if (direction == Rockford.MoveDirection.up)
+        if (direction == MoveDirection.up)
             gridItem = GetGridItem(position.X, position.Y - 1);
-        else if (direction == Rockford.MoveDirection.left)
+        else if (direction == MoveDirection.left)
             gridItem = GetGridItem(position.X - 1, position.Y);
-        else if (direction == Rockford.MoveDirection.down)
+        else if (direction == MoveDirection.down)
             gridItem = GetGridItem(position.X, position.Y + 1);
-        else if (direction == Rockford.MoveDirection.right)
+        else if (direction == MoveDirection.right)
             gridItem = GetGridItem(position.X + 1, position.Y);
 
         if (gridItem.Type == ItemType.Mud)
@@ -374,7 +375,7 @@ public partial class Main : Node
         else if (gridItem.Type == ItemType.Rock)
         {
             if (CanRockfordPushRock(gridItem, position, direction))
-                (gridItem as FallingObject).CurrentState = direction == Rockford.MoveDirection.left ? State.PushedLeft : State.PushedRight;
+                (gridItem as FallingObjectController).CurrentState = direction == MoveDirection.left ? FallingObjectController.State.PushedLeft : FallingObjectController.State.PushedRight;
         }
         else if (gridItem.Type == ItemType.Diamond)
         {
@@ -387,8 +388,8 @@ public partial class Main : Node
         int prevIndex = GetGridIndex(prevPosition.X, prevPosition.Y);
         int nextIndex = GetGridIndex(newPosition.X, newPosition.Y);
 
-        BaseGridObject prevGridItem = levelGrid[prevIndex];
-        BaseGridObject nextGridItem = levelGrid[nextIndex];
+        BaseGridObjectController prevGridItem = levelGrid[prevIndex];
+        BaseGridObjectController nextGridItem = levelGrid[nextIndex];
 
         if (replaceNext)
         {
@@ -409,11 +410,11 @@ public partial class Main : Node
         {
             for (int y = position.Y - 1; y < position.Y + 2; y++)
             {
-                BaseGridObject gridItem = GetGridItem(x, y);
+                BaseGridObjectController gridItem = GetGridItem(x, y);
                 if (gridItem.Type != ItemType.MetalWall)
                 {
                     RemoveGridItem(new(x, y));
-                    BaseGridObject bgo = AddGridItem<Explosion, BaseGridObject>(explosionScene, ItemType.Explosion, new(x * SPRITE_WIDTH, y * SPRITE_HEIGHT), new(x, y));
+                    BaseGridObjectController bgo = AddGridItem<Explosion, BaseGridObjectController>(explosionScene, ItemType.Explosion, new(x * SPRITE_WIDTH, y * SPRITE_HEIGHT), new(x, y));
                     (bgo.NodeObject as Explosion).AnimationEnd += () =>
                     {
                         RemoveGridObject(bgo);
@@ -537,24 +538,24 @@ public partial class Main : Node
         eventQueue.Enqueue(userEvents);
     }
 
-    private bool CheckCollisions(BaseGridObject bgo)
+    private bool CheckCollisions(BaseGridObjectController bgo)
     {
         // check collision with falling objects (rocks, diamonds) and rockford
-        if (((bgo.Type == ItemType.Rock) || (bgo.Type == ItemType.Diamond)) && ((bgo as FallingObject).CurrentState == State.Fall))
+        if (((bgo.Type == ItemType.Rock) || (bgo.Type == ItemType.Diamond)) && ((bgo as FallingObjectController).CurrentState == FallingObjectController.State.Fall))
         {
-            BaseGridObject gridItem = GetGridItem(bgo.GridPosition.X, bgo.GridPosition.Y + 1);
+            BaseGridObjectController gridItem = GetGridItem(bgo.GridPosition.X, bgo.GridPosition.Y + 1);
             if (gridItem.Type == ItemType.Rockford)
             {
                 GD.Print("Rockford DEAD!!!");
 
-                RemoveGridItem((player as BaseGridObject).GridPosition);
+                RemoveGridItem((player as BaseGridObjectController).GridPosition);
                 RemoveGridObject(bgo);
 
                 SpawnExplosion(player.GridPosition);
 
                 gameState = GameState.gsRockfordDead;
 
-                return false;
+                return false;   // do not update on Rockford dead
             }
             else if (gridItem.Type == ItemType.EnemySquare)
             {
