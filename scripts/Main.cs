@@ -298,6 +298,7 @@ public partial class Main : Node
             if ((afterRockGridItem.Type == ItemType.None) && (belowRockGridItem.Type != ItemType.None))
             {
                 GD.Print("Rockford can move rock direction: " + rockfordDirection.ToString());
+                GetNode<AudioStreamPlayer2D>("StonePushAudio").Play();
                 return true;
             }
         }
@@ -322,6 +323,7 @@ public partial class Main : Node
                 case ItemType.Diamond:
                     {
                         RemoveGridItem(gridItem.GridPosition);
+                        GetNode<AudioStreamPlayer2D>("DiamondCollectAudio").Play();
                         return true;
                     }
 
@@ -422,6 +424,8 @@ public partial class Main : Node
                 }
             }
         }
+
+        GetNode<AudioStreamPlayer2D>("ExplosionAudio").Play();
     }
 
     private void GameLoopManagement(double delta)
@@ -460,7 +464,6 @@ public partial class Main : Node
         }
 
     }
-
     private void HandleInput(double delta)
     {
         if (!inputEnabled)
@@ -496,7 +499,6 @@ public partial class Main : Node
         else if (Input.IsActionPressed("ui_accept"))
             eventQueue.Enqueue(UserEvent.ueFire);
     }
-
     private void HandleMultipleInput(double delta)
     {
         if (!inputEnabled)
@@ -537,35 +539,50 @@ public partial class Main : Node
 
         eventQueue.Enqueue(userEvents);
     }
-
     private bool CheckCollisions(BaseGridObjectController bgo)
     {
-        // check collision with falling objects (rocks, diamonds) and rockford
-        if (((bgo.Type == ItemType.Rock) || (bgo.Type == ItemType.Diamond)) && ((bgo as FallingObjectController).CurrentState == FallingObjectController.State.Fall))
+        switch (bgo.Type)
         {
-            BaseGridObjectController gridItem = GetGridItem(bgo.GridPosition.X, bgo.GridPosition.Y + 1);
-            if (gridItem.Type == ItemType.Rockford)
-            {
-                GD.Print("Rockford DEAD!!!");
+            // check collision with falling objects (rocks, diamonds) and rockford
+            case ItemType.Rock:
+            case ItemType.Diamond:
+                {
+                    FallingObjectController fallingObject = bgo as FallingObjectController;
+                    if ((fallingObject != null) && (fallingObject.CurrentState == FallingObjectController.State.Fall))
+                    {
+                        BaseGridObjectController gridItem = GetGridItem(bgo.GridPosition.X, bgo.GridPosition.Y + 1);
+                        if (gridItem.Type == ItemType.Rockford)
+                        {
+                            GD.Print("Rockford DEAD!!!");
 
-                RemoveGridItem((player as BaseGridObjectController).GridPosition);
-                RemoveGridObject(bgo);
+                            RemoveGridObject(player);
+                            RemoveGridObject(bgo);
 
-                SpawnExplosion(player.GridPosition);
+                            SpawnExplosion(player.GridPosition);
 
-                gameState = GameState.gsRockfordDead;
+                            gameState = GameState.gsRockfordDead;
 
-                return false;   // do not update on Rockford dead
-            }
-            else if (gridItem.Type == ItemType.EnemySquare)
-            {
-                RemoveGridObject(gridItem);
-                RemoveGridObject(bgo);
+                            return false;   // do not update on Rockford dead
+                        }
+                        else if (gridItem.Type == ItemType.EnemySquare)
+                        {
+                            RemoveGridObject(gridItem);
+                            RemoveGridObject(bgo);
 
-                SpawnExplosion(gridItem.GridPosition);                
-            }
+                            SpawnExplosion(gridItem.GridPosition);
+                        }
+                    }
+                    break;
+                }
+
+            case ItemType.EnemySquare:
+                {
+                    // check collision rockford & enemy
+                    break;
+                }
         }
 
+        // let update object on return
         return true;
     }
 

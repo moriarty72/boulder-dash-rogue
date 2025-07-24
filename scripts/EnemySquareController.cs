@@ -66,16 +66,22 @@ public partial class EnemySquareController : BaseGridObjectController
 
     private void UpdatePosition(Vector2I newPosition)
     {
+        PrevGridPosition = GridPosition;
+        GridPosition = newPosition;
+
+        /*
         mainController.SwapGridItems(GridPosition, newPosition, false);
         NodeObject.GlobalPosition = new(newPosition.X * 64, newPosition.Y * 64);
         GridPosition = newPosition;
+        */
     }
 
     private void CheckCollision()
     {
         Vector2I[] collisionOffset = [new(1, 0), new(0, -1), new(-1, 0), new(0, 1)];
 
-        for (int i = 0; i < collisionOffset.Length; i++) {
+        for (int i = 0; i < collisionOffset.Length; i++)
+        {
             if (mainController.CheckObjectCollision(GridPosition, collisionOffset[i].X, collisionOffset[i].Y, this))
             {
                 mainController.RemoveGridItem(GridPosition);
@@ -93,7 +99,13 @@ public partial class EnemySquareController : BaseGridObjectController
         }
         lastMoveTick = 0;
 
-        CheckCollision();
+        // CheckCollision();
         MoveByDirection(delta);
     }
+
+    public override void Update(double delta)
+    {
+        UpdateNodeObjectPosition();
+    }
+
 }

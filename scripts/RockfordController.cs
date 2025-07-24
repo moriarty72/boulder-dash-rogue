@@ -120,7 +120,8 @@ public partial class RockfordController : BaseGridObjectController
         if (CurrentState == State.Dead)
             return;
 
-        UpdateNodeObjectPosition();
+        if (UpdateNodeObjectPosition())
+            (NodeObject as Rockford).PlayAudio();
     }
 
     public override void Dead()

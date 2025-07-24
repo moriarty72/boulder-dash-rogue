@@ -8,6 +8,8 @@ public partial class Rockford : Area2D
     private MoveDirection lastHorizontalMove = MoveDirection.right;
     private MoveDirection currentMoveDirection = MoveDirection.none;
 
+    private AudioStreamPlayer2D walkAudioStream;
+
     public Rockford()
     {
 
@@ -17,8 +19,15 @@ public partial class Rockford : Area2D
     {
         base._Ready();
 
+        walkAudioStream = GetNode<AudioStreamPlayer2D>("AudioStreamPlayer2D");
+
         animatedSprite2D = GetNode<AnimatedSprite2D>("AnimatedSprite2D");
         animatedSprite2D.Play("stand");
+    }
+
+    public void PlayAudio()
+    {
+        walkAudioStream?.Play();
     }
 
     public void PlayAnimation(MoveDirection moveDirection)

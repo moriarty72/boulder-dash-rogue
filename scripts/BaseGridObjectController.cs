@@ -47,7 +47,7 @@ public class BaseGridObjectController
         mainController.AddChild(NodeObject);
     }
 
-    protected void UpdateNodeObjectPosition()
+    protected bool UpdateNodeObjectPosition()
     {
         if (PrevGridPosition != GridPosition)
         {
@@ -55,9 +55,12 @@ public class BaseGridObjectController
             mainController.SwapGridItems(PrevGridPosition, GridPosition, true);
 
             PrevGridPosition = GridPosition;
-        }
-    }
 
+            return true;
+        }
+        return false;
+    }
+    
     public virtual void Process(double delta)
     {
         if (Type == ItemType.None)

@@ -1,6 +1,9 @@
-[gd_scene load_steps=3 format=3 uid="uid://b70onn202o232"]
+[gd_scene load_steps=6 format=3 uid="uid://b70onn202o232"]
 
 [ext_resource type="Script" uid="uid://bn5mtotml51bv" path="res://scripts/Main.cs" id="1_o5qli"]
+[ext_resource type="AudioStream" uid="uid://0fodhcl5ss8k" path="res://assets/audio/exploded.ogg" id="2_0wfyh"]
+[ext_resource type="AudioStream" uid="uid://21284lqel317" path="res://assets/audio/diamond_collect.ogg" id="3_sugp2"]
+[ext_resource type="AudioStream" uid="uid://bp656jhjyxpfc" path="res://assets/audio/stone_2.ogg" id="4_jyhfs"]
 
 [sub_resource type="CanvasItemMaterial" id="CanvasItemMaterial_o5qli"]
 
@@ -20,3 +23,12 @@ drag_horizontal_enabled = true
 drag_vertical_enabled = true
 drag_horizontal_offset = 1.0
 drag_vertical_offset = 1.0
+
+[node name="ExplosionAudio" type="AudioStreamPlayer2D" parent="."]
+stream = ExtResource("2_0wfyh")
+
+[node name="DiamondCollectAudio" type="AudioStreamPlayer2D" parent="."]
+stream = ExtResource("3_sugp2")
+
+[node name="StonePushAudio" type="AudioStreamPlayer2D" parent="."]
+stream = ExtResource("4_jyhfs")

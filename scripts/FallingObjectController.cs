@@ -119,11 +119,6 @@ public partial class FallingObjectController : BaseGridObjectController
         }
     }
 
-    private void Move(double delta)
-    {
-        UpdateNodeObjectPosition();
-    }
-
     public override void Process(double delta)
     {
         if (CurrentState == State.Dead)
@@ -138,7 +133,7 @@ public partial class FallingObjectController : BaseGridObjectController
         if ((CurrentState == State.Dead) || (CurrentState == State.Stand))
             return;
 
-        Move(delta);
+        UpdateNodeObjectPosition();
     }
 
     public override void Dead()

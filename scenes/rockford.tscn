@@ -1,9 +1,10 @@
-[gd_scene load_steps=28 format=3 uid="uid://bq32noh0vqc2p"]
+[gd_scene load_steps=29 format=3 uid="uid://bq32noh0vqc2p"]
 
 [ext_resource type="Texture2D" uid="uid://cpbdwhl7abfvp" path="res://assets/rockford-left.png" id="1_homnn"]
 [ext_resource type="Texture2D" uid="uid://o8v78vb6s35j" path="res://assets/rockford-stand.png" id="1_j01d8"]
 [ext_resource type="Script" uid="uid://b2coo68y1e1af" path="res://scripts/Rockford.cs" id="1_rrv4r"]
 [ext_resource type="Texture2D" uid="uid://ebuyo05h4o80" path="res://assets/rockford-right.png" id="2_dujic"]
+[ext_resource type="AudioStream" uid="uid://li3wgfr81wwi" path="res://assets/audio/walk_e.ogg" id="5_vqdrl"]
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_guc2h"]
 atlas = ExtResource("1_homnn")
@@ -185,5 +186,8 @@ animation = &"right"
 [node name="CollisionShape2D" type="CollisionShape2D" parent="."]
 position = Vector2(32, 32)
 shape = SubResource("RectangleShape2D_gbuaf")
+
+[node name="AudioStreamPlayer2D" type="AudioStreamPlayer2D" parent="."]
+stream = ExtResource("5_vqdrl")
 
 [connection signal="area_entered" from="." to="." method="_on_player_body_entered"]
