@@ -26,6 +26,84 @@ public partial class RockfordController : BaseGridObjectController
 
     public State rockfordState = State.Alive;
 
+    private bool CanRockfordPushRock(BaseGridObjectController rockGridObject, MoveDirection rockfordDirection)
+    {
+        if ((rockfordDirection == MoveDirection.left) || (rockfordDirection == MoveDirection.right))
+        {
+            // check empty space after rock
+            int x = rockGridObject.GridPosition.X + (rockfordDirection == MoveDirection.left ? -1 : 1);
+            BaseGridObjectController afterRockGridItem = mainController.GetGridItem(x, rockGridObject.GridPosition.Y);
+            BaseGridObjectController belowRockGridItem = mainController.GetGridItem(rockGridObject.GridPosition.X, rockGridObject.GridPosition.Y + 1);
+            if ((afterRockGridItem.Type == ItemType.None) && (belowRockGridItem.Type != ItemType.None))
+            {
+                GD.Print("Rockford can move rock direction: " + rockfordDirection.ToString());
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private bool CanRockfordMove(double delta, Vector2I nextPlayerPosition, MoveDirection rockfordDirection)
+    {
+        BaseGridObjectController gridItem = mainController.GetGridItem(nextPlayerPosition.X, nextPlayerPosition.Y);
+
+        if (gridItem != null)
+        {
+            switch (gridItem.Type)
+            {
+                case ItemType.Rock:
+                    {
+                        if (CanRockfordPushRock(gridItem, rockfordDirection))
+                        {
+                            // move rock
+                            (gridItem as FallingObjectController).CurrentState = rockfordDirection == MoveDirection.left ? FallingObjectController.State.PushedLeft : FallingObjectController.State.PushedRight;
+                            (gridItem as FallingObjectController).ProcessAndUpdate(delta);
+
+                            mainController.PlayAudio("StonePushAudio");
+                        }
+                        return false;
+                    }
+
+                case ItemType.Diamond:
+                    {
+                        mainController.RemoveGridItem(gridItem.GridPosition);
+                        mainController.PlayAudio("DiamondCollectAudio");
+                        return true;
+                    }
+
+                case ItemType.MetalWall:
+                    return false;
+            }
+        }
+        return true;
+    }
+
+    public void RockfordFireAction(Vector2I position, MoveDirection direction)
+    {
+        BaseGridObjectController gridItem = null;
+
+        if (direction == MoveDirection.up)
+            gridItem = mainController.GetGridItem(position.X, position.Y - 1);
+        else if (direction == MoveDirection.left)
+            gridItem = mainController.GetGridItem(position.X - 1, position.Y);
+        else if (direction == MoveDirection.down)
+            gridItem = mainController.GetGridItem(position.X, position.Y + 1);
+        else if (direction == MoveDirection.right)
+            gridItem = mainController.GetGridItem(position.X + 1, position.Y);
+
+        if (gridItem.Type == ItemType.Mud)
+            mainController.RemoveGridItem(gridItem.GridPosition);
+        else if (gridItem.Type == ItemType.Rock)
+        {
+            if (CanRockfordPushRock(gridItem, direction))
+                (gridItem as FallingObjectController).CurrentState = direction == MoveDirection.left ? FallingObjectController.State.PushedLeft : FallingObjectController.State.PushedRight;
+        }
+        else if (gridItem.Type == ItemType.Diamond)
+        {
+            mainController.RemoveGridItem(gridItem.GridPosition);
+        }
+    }
+
     private void ProcessPosition(double delta, MoveDirection moveDirection)
     {
         if (moveDirection == MoveDirection.none)
@@ -57,7 +135,7 @@ public partial class RockfordController : BaseGridObjectController
                 GridPosition.Y++;
             }
 
-            bool canPlayerMove = mainController.CanRockfordMove(GridPosition, moveDirection);
+            bool canPlayerMove = CanRockfordMove(delta, GridPosition, moveDirection);
             if (canPlayerMove)
                 (NodeObject as Rockford).PlayAnimation(moveDirection);
             else
@@ -65,7 +143,7 @@ public partial class RockfordController : BaseGridObjectController
         }
         else
         {
-            mainController.RockfordFireAction(GridPosition, moveDirection);
+            RockfordFireAction(GridPosition, moveDirection);
         }
     }
 
@@ -107,19 +185,12 @@ public partial class RockfordController : BaseGridObjectController
         }
     }
 
-    public override void Process(double delta)
+    public override void ProcessAndUpdate(double delta)
     {
         if (CurrentState == State.Dead)
             return;
 
         ProcessUserInput(delta);
-    }
-
-    public override void Update(double delta)
-    {
-        if (CurrentState == State.Dead)
-            return;
-
         if (UpdateNodeObjectPosition())
             (NodeObject as Rockford).PlayAudio();
     }

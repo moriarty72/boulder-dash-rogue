@@ -198,7 +198,7 @@ public partial class Main : Node
         {
             Vector2I[] rockPositions = [new(3, 3), new(3, 4)];
 
-            for (int i = 0; i < rockPositions.Length; i++)
+            for (int i = 0; i < rockPositions.Length - 1; i++)
             {
                 RemoveGridItem(rockPositions[i]);
                 AddGridItem<Rock, FallingObjectController>(rockScene, ItemType.Rock, new(rockPositions[i].X * SPRITE_WIDTH, rockPositions[i].Y * SPRITE_HEIGHT), rockPositions[i]);
@@ -215,9 +215,9 @@ public partial class Main : Node
         }
 
         spawnEmptyLevel();
-        spawnEnemies();
+        // spawnEnemies();
         spawnRocks();
-        spawnDiamonds();
+        // spawnDiamonds();
 
         /*
         for (int x = 0; x < testLevelGridSize.X; x++)
@@ -287,51 +287,9 @@ public partial class Main : Node
         player.NodeObject.AddChild(remoteTransform2D);
     }
 
-    private bool CanRockfordPushRock(BaseGridObjectController gridObject, Vector2I nextPlayerPosition, MoveDirection rockfordDirection)
+    public void PlayAudio(string audioName)
     {
-        if ((rockfordDirection == MoveDirection.left) || (rockfordDirection == MoveDirection.right))
-        {
-            // check empty space after rock
-            int x = gridObject.GridPosition.X + (rockfordDirection == MoveDirection.left ? -1 : 1);
-            BaseGridObjectController afterRockGridItem = GetGridItem(x, nextPlayerPosition.Y);
-            BaseGridObjectController belowRockGridItem = GetGridItem(nextPlayerPosition.X, nextPlayerPosition.Y + 1);
-            if ((afterRockGridItem.Type == ItemType.None) && (belowRockGridItem.Type != ItemType.None))
-            {
-                GD.Print("Rockford can move rock direction: " + rockfordDirection.ToString());
-                GetNode<AudioStreamPlayer2D>("StonePushAudio").Play();
-                return true;
-            }
-        }
-        return false;
-    }
-
-    public bool CanRockfordMove(Vector2I nextPlayerPosition, MoveDirection rockfordDirection)
-    {
-        BaseGridObjectController gridItem = GetGridItem(nextPlayerPosition.X, nextPlayerPosition.Y);
-
-        if (gridItem != null)
-        {
-            switch (gridItem.Type)
-            {
-                case ItemType.Rock:
-                    {
-                        if (CanRockfordPushRock(gridItem, nextPlayerPosition, rockfordDirection))
-                            (gridItem as FallingObjectController).CurrentState = rockfordDirection == MoveDirection.left ? FallingObjectController.State.PushedLeft : FallingObjectController.State.PushedRight;
-                        return false;
-                    }
-
-                case ItemType.Diamond:
-                    {
-                        RemoveGridItem(gridItem.GridPosition);
-                        GetNode<AudioStreamPlayer2D>("DiamondCollectAudio").Play();
-                        return true;
-                    }
-
-                case ItemType.MetalWall:
-                    return false;
-            }
-        }
-        return true;
+        GetNode<AudioStreamPlayer2D>(audioName)?.Play();
     }
 
     public bool CheckObjectCollision(Vector2I objectPosition, int offsetX, int offsetY, BaseGridObjectController gridObject)
@@ -357,32 +315,6 @@ public partial class Main : Node
         }
 
         return false;
-    }
-
-    public void RockfordFireAction(Vector2I position, MoveDirection direction)
-    {
-        BaseGridObjectController gridItem = null;
-
-        if (direction == MoveDirection.up)
-            gridItem = GetGridItem(position.X, position.Y - 1);
-        else if (direction == MoveDirection.left)
-            gridItem = GetGridItem(position.X - 1, position.Y);
-        else if (direction == MoveDirection.down)
-            gridItem = GetGridItem(position.X, position.Y + 1);
-        else if (direction == MoveDirection.right)
-            gridItem = GetGridItem(position.X + 1, position.Y);
-
-        if (gridItem.Type == ItemType.Mud)
-            RemoveGridItem(gridItem.GridPosition);
-        else if (gridItem.Type == ItemType.Rock)
-        {
-            if (CanRockfordPushRock(gridItem, position, direction))
-                (gridItem as FallingObjectController).CurrentState = direction == MoveDirection.left ? FallingObjectController.State.PushedLeft : FallingObjectController.State.PushedRight;
-        }
-        else if (gridItem.Type == ItemType.Diamond)
-        {
-            RemoveGridItem(gridItem.GridPosition);
-        }
     }
 
     public void SwapGridItems(Vector2I prevPosition, Vector2I newPosition, bool replaceNext)
@@ -590,9 +522,7 @@ public partial class Main : Node
     {
         for (int i = 0; i < levelGrid.Count; i++)
         {
-            levelGrid[i].Process(delta);
-            if (CheckCollisions(levelGrid[i]))
-                levelGrid[i].Update(delta);
+            levelGrid[i].ProcessAndUpdate(delta);
         }
     }
 

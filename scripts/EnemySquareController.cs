@@ -90,7 +90,7 @@ public partial class EnemySquareController : BaseGridObjectController
         }
     }
 
-    public override void Process(double delta)
+    public override void ProcessAndUpdate(double delta)
     {
         if ((lastMoveTick == 0) || (lastMoveTick <= 0.10))
         {
@@ -99,13 +99,7 @@ public partial class EnemySquareController : BaseGridObjectController
         }
         lastMoveTick = 0;
 
-        // CheckCollision();
         MoveByDirection(delta);
-    }
-
-    public override void Update(double delta)
-    {
         UpdateNodeObjectPosition();
     }
-
 }

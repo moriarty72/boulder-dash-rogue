@@ -61,17 +61,12 @@ public class BaseGridObjectController
         return false;
     }
     
-    public virtual void Process(double delta)
+    public virtual void ProcessAndUpdate(double delta)
     {
         if (Type == ItemType.None)
             return;
 
         (NodeObject as IBaseGridObject)?.Process(mainController, this, delta);
-    }
-
-    public virtual void Update(double delta)
-    {
-
     }
 
     public virtual void Dead()

@@ -1,5 +1,6 @@
 using Godot;
 using System;
+using System.Collections;
 using System.Dynamic;
 
 public partial class FallingObjectController : BaseGridObjectController
@@ -104,7 +105,7 @@ public partial class FallingObjectController : BaseGridObjectController
                     GridPosition.X--;
                     WorldPosition.X -= 64;
 
-                    CurrentState = State.Stand;
+                    // CurrentState = State.Stand;
                     return;
                 }
 
@@ -113,27 +114,46 @@ public partial class FallingObjectController : BaseGridObjectController
                     GridPosition.X++;
                     WorldPosition.X += 64;
 
-                    CurrentState = State.Stand;
+                    // CurrentState = State.Stand;
                     return;
                 }
         }
     }
 
-    public override void Process(double delta)
+    public override void ProcessAndUpdate(double delta)
     {
         if (CurrentState == State.Dead)
             return;
 
         CurrentState = CheckAndUpdateCurrentState();
         ProcessPosition(delta);
+        Update(delta);
     }
 
-    public override void Update(double delta)
+    private void Update(double delta)
     {
-        if ((CurrentState == State.Dead) || (CurrentState == State.Stand))
-            return;
+        switch (CurrentState)
+        {
+            case State.Dead:
+            case State.Stand:
+                {
+                    break;
+                }
 
-        UpdateNodeObjectPosition();
+            case State.PushedLeft:
+            case State.PushedRight:
+                {
+                    UpdateNodeObjectPosition();
+                    CurrentState = State.Stand;
+                    break;
+                }
+
+            default:
+                {
+                    UpdateNodeObjectPosition();
+                    break;
+                }
+        }
     }
 
     public override void Dead()
