@@ -21,7 +21,7 @@ public partial class FallingObjectController : BaseGridObjectController
     }
 
     public State CurrentState { get; set; } = State.Stand;
-    private double lastMoveTick = 0;
+    private double lastFallTick = 0;
 
     private State CheckAndUpdateCurrentState()
     {
@@ -67,18 +67,18 @@ public partial class FallingObjectController : BaseGridObjectController
         if ((CurrentState == State.Stand) || (CurrentState == State.Dead))
             return;
 
-        if ((lastMoveTick == 0) || (lastMoveTick <= FALL_SPEED))
-        {
-            lastMoveTick += delta;
-            return;
-        }
-        lastMoveTick = 0;
-
         PrevGridPosition = new(GridPosition.X, GridPosition.Y);
         switch (CurrentState)
         {
             case State.Fall:
                 {
+                    if ((lastFallTick == 0) || (lastFallTick <= FALL_SPEED))
+                    {
+                        lastFallTick += delta;
+                        return;
+                    }
+                    lastFallTick = 0;
+
                     GridPosition.Y++;
                     WorldPosition.Y += 64;
                     break;

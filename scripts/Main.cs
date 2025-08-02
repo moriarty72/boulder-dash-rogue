@@ -69,6 +69,8 @@ public partial class Main : Node
         gsGameOver
     }
 
+    private UserEvent currentUserEvent = UserEvent.ueNone;
+
     private Queue<UserEvent> eventQueue = new Queue<UserEvent>();
     private double disableInputDelayTime = 0;
     private double idleInputDelayTime = 0;
@@ -198,7 +200,7 @@ public partial class Main : Node
         {
             Vector2I[] rockPositions = [new(3, 3), new(3, 4)];
 
-            for (int i = 0; i < rockPositions.Length - 1; i++)
+            for (int i = 0; i < rockPositions.Length; i++)
             {
                 RemoveGridItem(rockPositions[i]);
                 AddGridItem<Rock, FallingObjectController>(rockScene, ItemType.Rock, new(rockPositions[i].X * SPRITE_WIDTH, rockPositions[i].Y * SPRITE_HEIGHT), rockPositions[i]);
@@ -215,9 +217,9 @@ public partial class Main : Node
         }
 
         spawnEmptyLevel();
-        // spawnEnemies();
+        spawnEnemies();
         spawnRocks();
-        // spawnDiamonds();
+        spawnDiamonds();
 
         /*
         for (int x = 0; x < testLevelGridSize.X; x++)
@@ -262,6 +264,8 @@ public partial class Main : Node
 
     public UserEvent GetInputEvent(double delta)
     {
+        return currentUserEvent;
+
         if (eventQueue.Count == 0)
             return UserEvent.ueNone;
 
@@ -431,45 +435,30 @@ public partial class Main : Node
         else if (Input.IsActionPressed("ui_accept"))
             eventQueue.Enqueue(UserEvent.ueFire);
     }
+
     private void HandleMultipleInput(double delta)
     {
-        if (!inputEnabled)
-        {
-            disableInputDelayTime += delta;
-            if (disableInputDelayTime < disableInputDelay)
-                return;
-
-            disableInputDelayTime = 0;
-            inputEnabled = true;
-        }
-
-        UserEvent userEvents = UserEvent.ueNone;
+        currentUserEvent = UserEvent.ueNone;
 
         if (Input.IsActionPressed("ui_accept"))
-            userEvents |= UserEvent.ueFire;
+            currentUserEvent |= UserEvent.ueFire;
 
         if (Input.IsActionPressed("ui_left"))
         {
-            userEvents |= UserEvent.ueLeft;
-            inputEnabled = false;
+            currentUserEvent |= UserEvent.ueLeft;
         }
         else if (Input.IsActionPressed("ui_right"))
         {
-            userEvents |= UserEvent.ueRight;
-            inputEnabled = false;
+            currentUserEvent |= UserEvent.ueRight;
         }
         else if (Input.IsActionPressed("ui_up"))
         {
-            userEvents |= UserEvent.ueUp;
-            inputEnabled = false;
+            currentUserEvent |= UserEvent.ueUp;
         }
         else if (Input.IsActionPressed("ui_down"))
         {
-            userEvents |= UserEvent.ueDown;
-            inputEnabled = false;
+            currentUserEvent |= UserEvent.ueDown;
         }
-
-        eventQueue.Enqueue(userEvents);
     }
     private bool CheckCollisions(BaseGridObjectController bgo)
     {

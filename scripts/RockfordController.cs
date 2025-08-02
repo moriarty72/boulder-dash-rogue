@@ -1,12 +1,17 @@
+using System;
 using Godot;
 
 public partial class RockfordController : BaseGridObjectController
 {
-    private const double IDLE_INPUT_TIME = 0.15;
+    private const double MOVE_DELAY_TIME = 0.15;
+    private const double PUSH_DELAY_TIME = 0.55;
 
     public enum State
     {
         Alive,
+        Move,
+        Push,
+        Stand,
         Dead
     }
 
@@ -21,7 +26,8 @@ public partial class RockfordController : BaseGridObjectController
 
     public State CurrentState { get; set; } = State.Alive;
 
-    private double idleInputDelayTime = 0;
+    private double moveDelayTime = 0;
+    private double pushDelayTime = 0;
     private bool firePressed = false;
 
     public State rockfordState = State.Alive;
@@ -36,7 +42,7 @@ public partial class RockfordController : BaseGridObjectController
             BaseGridObjectController belowRockGridItem = mainController.GetGridItem(rockGridObject.GridPosition.X, rockGridObject.GridPosition.Y + 1);
             if ((afterRockGridItem.Type == ItemType.None) && (belowRockGridItem.Type != ItemType.None))
             {
-                GD.Print("Rockford can move rock direction: " + rockfordDirection.ToString());
+                // GD.Print("Rockford can move rock direction: " + rockfordDirection.ToString());
                 return true;
             }
         }
@@ -55,11 +61,14 @@ public partial class RockfordController : BaseGridObjectController
                     {
                         if (CanRockfordPushRock(gridItem, rockfordDirection))
                         {
+                            CurrentState = State.Push;
+
                             // move rock
                             (gridItem as FallingObjectController).CurrentState = rockfordDirection == MoveDirection.left ? FallingObjectController.State.PushedLeft : FallingObjectController.State.PushedRight;
                             (gridItem as FallingObjectController).ProcessAndUpdate(delta);
-
                             mainController.PlayAudio("StonePushAudio");
+
+                            return true;
                         }
                         return false;
                     }
@@ -104,14 +113,8 @@ public partial class RockfordController : BaseGridObjectController
         }
     }
 
-    private void ProcessPosition(double delta, MoveDirection moveDirection)
+    private void ComputeRockfordPosition(double delta, MoveDirection moveDirection)
     {
-        if (moveDirection == MoveDirection.none)
-        {
-            (NodeObject as Rockford).PlayAnimation(moveDirection);
-            return;
-        }
-
         PrevGridPosition = new(GridPosition.X, GridPosition.Y);
         if (!firePressed)
         {
@@ -147,42 +150,83 @@ public partial class RockfordController : BaseGridObjectController
         }
     }
 
+    private void ProcessPosition(double delta, MoveDirection moveDirection)
+    {
+        bool ProcessMovement(ref double delayTime, double maxDelayTime)
+        {
+            if ((delayTime == 0) || (delayTime <= maxDelayTime))
+            {
+                delayTime += delta;
+                return false;
+            }
+            delayTime = 0;
+
+            ComputeRockfordPosition(delta, moveDirection);
+            (NodeObject as Rockford).PlayAnimation(moveDirection);
+
+            return true;
+        }
+
+        switch (CurrentState)
+        {
+            case State.Alive:
+            case State.Dead:
+                {
+                    break;
+                }
+
+            case State.Move:
+                {
+                    ProcessMovement(ref moveDelayTime, MOVE_DELAY_TIME);
+                    break;
+                }
+
+            case State.Push:
+                {
+                    ProcessMovement(ref pushDelayTime, PUSH_DELAY_TIME);
+                    break;
+                }
+
+            case State.Stand:
+                {
+                    (NodeObject as Rockford).PlayAnimation(moveDirection);
+                    break;
+                }
+        }
+    }
+
     private void ProcessUserInput(double delta)
     {
         Main.UserEvent inputEvent = mainController.GetInputEvent(delta);
 
         firePressed = (inputEvent & Main.UserEvent.ueFire) == Main.UserEvent.ueFire;
-
-        if (inputEvent == Main.UserEvent.ueNone)
-        {
-            idleInputDelayTime += delta;
-            if (idleInputDelayTime > IDLE_INPUT_TIME)
-            {
-                idleInputDelayTime = 0;
-                ProcessPosition(delta, MoveDirection.none);
-            }
-        }
-
         if ((inputEvent & Main.UserEvent.ueLeft) == Main.UserEvent.ueLeft)
         {
-            idleInputDelayTime = 0;
+            CurrentState = (CurrentState == State.Push) ? State.Push : State.Move;
             ProcessPosition(delta, MoveDirection.left);
         }
         else if ((inputEvent & Main.UserEvent.ueRight) == Main.UserEvent.ueRight)
         {
-            idleInputDelayTime = 0;
+            CurrentState = (CurrentState == State.Push) ? State.Push : State.Move;
             ProcessPosition(delta, MoveDirection.right);
         }
         else if ((inputEvent & Main.UserEvent.ueUp) == Main.UserEvent.ueUp)
         {
-            idleInputDelayTime = 0;
+            CurrentState = State.Move;
             ProcessPosition(delta, MoveDirection.up);
         }
         else if ((inputEvent & Main.UserEvent.ueDown) == Main.UserEvent.ueDown)
         {
-            idleInputDelayTime = 0;
+            CurrentState = State.Move;
             ProcessPosition(delta, MoveDirection.down);
         }
+        else //if (inputEvent == Main.UserEvent.ueNone)
+        {
+            CurrentState = State.Stand;
+            ProcessPosition(delta, MoveDirection.none);
+        }
+
+        // GD.Print("Current Rockford state: [", CurrentState, "] InputEvent: [", inputEvent, "]");
     }
 
     public override void ProcessAndUpdate(double delta)
