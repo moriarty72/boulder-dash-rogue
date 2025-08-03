@@ -78,6 +78,7 @@ public partial class EnemySquareController : BaseGridObjectController
 
     private void CheckCollision()
     {
+        /*
         Vector2I[] collisionOffset = [new(1, 0), new(0, -1), new(-1, 0), new(0, 1)];
 
         for (int i = 0; i < collisionOffset.Length; i++)
@@ -88,6 +89,7 @@ public partial class EnemySquareController : BaseGridObjectController
                 break;
             }
         }
+        */
     }
 
     public override void ProcessAndUpdate(double delta)

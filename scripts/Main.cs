@@ -265,11 +265,6 @@ public partial class Main : Node
     public UserEvent GetInputEvent(double delta)
     {
         return currentUserEvent;
-
-        if (eventQueue.Count == 0)
-            return UserEvent.ueNone;
-
-        return eventQueue.Dequeue();
     }
 
     private void DisableInput(double delay)
@@ -296,31 +291,6 @@ public partial class Main : Node
         GetNode<AudioStreamPlayer2D>(audioName)?.Play();
     }
 
-    public bool CheckObjectCollision(Vector2I objectPosition, int offsetX, int offsetY, BaseGridObjectController gridObject)
-    {
-        BaseGridObjectController gridItem = GetGridItem(objectPosition.X + offsetX, objectPosition.Y + offsetY);
-        if (gridItem.Type == ItemType.Rockford)
-        {
-            RemoveGridItem((player as BaseGridObjectController).GridPosition);
-            RemoveGridObject(gridObject);
-
-            SpawnExplosion(player.GridPosition);
-
-            gameState = GameState.gsRockfordDead;
-            return true;
-        }
-        else if (gridItem.Type == ItemType.EnemySquare)
-        {
-            RemoveGridItem(gridItem.GridPosition);
-            RemoveGridObject(gridObject);
-
-            SpawnExplosion(gridItem.GridPosition);
-            return true;
-        }
-
-        return false;
-    }
-
     public void SwapGridItems(Vector2I prevPosition, Vector2I newPosition, bool replaceNext)
     {
         int prevIndex = GetGridIndex(prevPosition.X, prevPosition.Y);
@@ -342,7 +312,7 @@ public partial class Main : Node
         }
     }
 
-    private void SpawnExplosion(Vector2I position)
+    public void SpawnExplosion(Vector2I position, bool isRockfordDead)
     {
         for (int x = position.X - 1; x < position.X + 2; x++)
         {
@@ -360,6 +330,9 @@ public partial class Main : Node
                 }
             }
         }
+
+        if (isRockfordDead)
+            gameState = GameState.gsRockfordDead;
 
         GetNode<AudioStreamPlayer2D>("ExplosionAudio").Play();
     }
@@ -459,52 +432,6 @@ public partial class Main : Node
         {
             currentUserEvent |= UserEvent.ueDown;
         }
-    }
-    private bool CheckCollisions(BaseGridObjectController bgo)
-    {
-        switch (bgo.Type)
-        {
-            // check collision with falling objects (rocks, diamonds) and rockford
-            case ItemType.Rock:
-            case ItemType.Diamond:
-                {
-                    FallingObjectController fallingObject = bgo as FallingObjectController;
-                    if ((fallingObject != null) && (fallingObject.CurrentState == FallingObjectController.State.Fall))
-                    {
-                        BaseGridObjectController gridItem = GetGridItem(bgo.GridPosition.X, bgo.GridPosition.Y + 1);
-                        if (gridItem.Type == ItemType.Rockford)
-                        {
-                            GD.Print("Rockford DEAD!!!");
-
-                            RemoveGridObject(player);
-                            RemoveGridObject(bgo);
-
-                            SpawnExplosion(player.GridPosition);
-
-                            gameState = GameState.gsRockfordDead;
-
-                            return false;   // do not update on Rockford dead
-                        }
-                        else if (gridItem.Type == ItemType.EnemySquare)
-                        {
-                            RemoveGridObject(gridItem);
-                            RemoveGridObject(bgo);
-
-                            SpawnExplosion(gridItem.GridPosition);
-                        }
-                    }
-                    break;
-                }
-
-            case ItemType.EnemySquare:
-                {
-                    // check collision rockford & enemy
-                    break;
-                }
-        }
-
-        // let update object on return
-        return true;
     }
 
     private void ProcessGameObjects(double delta)

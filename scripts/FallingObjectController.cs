@@ -5,7 +5,7 @@ using System.Dynamic;
 
 public partial class FallingObjectController : BaseGridObjectController
 {
-    private const double FALL_SPEED = 0.068;
+    private const double FALL_SPEED = 0.15;
 
     public enum State
     {
@@ -17,39 +17,51 @@ public partial class FallingObjectController : BaseGridObjectController
         MoveRight,
         MoveLeft,
         PushedLeft,
-        PushedRight
+        PushedRight,
+        RockfordCollision,
+        EnemyCollision
     }
 
     public State CurrentState { get; set; } = State.Stand;
     private double lastFallTick = 0;
 
-    private State CheckAndUpdateCurrentState()
+    private State ProcessCurrentState()
     {
         switch (CurrentState)
         {
             case State.Stand:
                 {
-                    if (CurrentState == State.Stand)
+                    // check if rock or diamond must fall
+                    BaseGridObjectController gridItem = mainController.GetGridItem(GridPosition.X, GridPosition.Y + 1);
+                    if (gridItem.Type == ItemType.None)
+                        return State.Fall;
+
+                    if ((gridItem.Type == ItemType.Rock) || (gridItem.Type == ItemType.Diamond))
                     {
-                        // check if rock or diamond must fall
-                        BaseGridObjectController gridItem = mainController.GetGridItem(GridPosition.X, GridPosition.Y + 1);
-                        if (gridItem.Type == ItemType.None)
-                            return State.Fall;
+                        // check if rock or diamond must fall left/right
+                        gridItem = mainController.GetGridItem(GridPosition.X - 1, GridPosition.Y + 1);
+                        BaseGridObjectController gridItemLeft = mainController.GetGridItem(GridPosition.X - 1, GridPosition.Y);
+                        if ((gridItem.Type == ItemType.None) && (gridItemLeft.Type == ItemType.None))
+                            return State.FallLeft;
 
-                        if ((gridItem.Type == ItemType.Rock) || (gridItem.Type == ItemType.Diamond))
-                        {
-                            // check if rock or diamond must fall left/right
-                            gridItem = mainController.GetGridItem(GridPosition.X - 1, GridPosition.Y + 1);
-                            BaseGridObjectController gridItemLeft = mainController.GetGridItem(GridPosition.X - 1, GridPosition.Y);
-                            if ((gridItem.Type == ItemType.None) && (gridItemLeft.Type == ItemType.None))
-                                return State.FallLeft;
-
-                            gridItem = mainController.GetGridItem(GridPosition.X + 1, GridPosition.Y + 1);
-                            BaseGridObjectController gridItemRight = mainController.GetGridItem(GridPosition.X + 1, GridPosition.Y);
-                            if ((gridItem.Type == ItemType.None) && (gridItemRight.Type == ItemType.None))
-                                return State.FallRight;
-                        }
+                        gridItem = mainController.GetGridItem(GridPosition.X + 1, GridPosition.Y + 1);
+                        BaseGridObjectController gridItemRight = mainController.GetGridItem(GridPosition.X + 1, GridPosition.Y);
+                        if ((gridItem.Type == ItemType.None) && (gridItemRight.Type == ItemType.None))
+                            return State.FallRight;
                     }
+                    break;
+                }
+
+            case State.Fall:
+                {
+                    BaseGridObjectController gridItem = mainController.GetGridItem(GridPosition.X, GridPosition.Y + 1);
+                    if (gridItem.Type == ItemType.None)
+                        return State.Fall;
+                    else if (gridItem.Type == ItemType.Rockford)
+                        return State.RockfordCollision;
+                    else if (gridItem.Type == ItemType.EnemySquare)
+                        return State.EnemyCollision;
+
                     break;
                 }
 
@@ -62,20 +74,23 @@ public partial class FallingObjectController : BaseGridObjectController
         return State.Stand;
     }
 
-    private void ProcessPosition(double delta)
+    private bool ProcessPosition(double delta)
     {
-        if ((CurrentState == State.Stand) || (CurrentState == State.Dead))
-            return;
-
         PrevGridPosition = new(GridPosition.X, GridPosition.Y);
         switch (CurrentState)
         {
+            case State.Dead:
+            case State.Stand:
+                {
+                    return false;
+                }
+
             case State.Fall:
                 {
                     if ((lastFallTick == 0) || (lastFallTick <= FALL_SPEED))
                     {
                         lastFallTick += delta;
-                        return;
+                        return false;
                     }
                     lastFallTick = 0;
 
@@ -104,30 +119,33 @@ public partial class FallingObjectController : BaseGridObjectController
                 {
                     GridPosition.X--;
                     WorldPosition.X -= 64;
-
-                    // CurrentState = State.Stand;
-                    return;
+                    break;
                 }
 
             case State.PushedRight:
                 {
                     GridPosition.X++;
                     WorldPosition.X += 64;
+                    break;
+                }
 
-                    // CurrentState = State.Stand;
-                    return;
+            case State.EnemyCollision:
+            case State.RockfordCollision:
+                {
+                    Dead();
+                    mainController.SpawnExplosion(GridPosition, true);
+
+                    return false;
                 }
         }
+        return true;
     }
 
     public override void ProcessAndUpdate(double delta)
     {
-        if (CurrentState == State.Dead)
-            return;
-
-        CurrentState = CheckAndUpdateCurrentState();
-        ProcessPosition(delta);
-        Update(delta);
+        CurrentState = ProcessCurrentState();
+        if (ProcessPosition(delta))
+            Update(delta);
     }
 
     private void Update(double delta)
@@ -137,6 +155,12 @@ public partial class FallingObjectController : BaseGridObjectController
             case State.Dead:
             case State.Stand:
                 {
+                    break;
+                }
+
+            case State.Fall:
+                {
+                    UpdateNodeObjectPosition();
                     break;
                 }
 
