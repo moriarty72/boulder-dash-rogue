@@ -18,6 +18,7 @@ public partial class FallingObjectController : BaseGridObjectController
         MoveLeft,
         PushedLeft,
         PushedRight,
+        GenericCollision,
         RockfordCollision,
         EnemyCollision
     }
@@ -61,8 +62,8 @@ public partial class FallingObjectController : BaseGridObjectController
                         return State.RockfordCollision;
                     else if (gridItem.Type == ItemType.EnemySquare)
                         return State.EnemyCollision;
-
-                    break;
+                    else
+                        return State.GenericCollision;
                 }
 
             case State.PushedRight:
@@ -136,6 +137,15 @@ public partial class FallingObjectController : BaseGridObjectController
                     mainController.SpawnExplosion(GridPosition, true);
 
                     return false;
+                }
+
+            case State.GenericCollision:
+                {
+                    if (Type == ItemType.Rock)
+                        mainController.PlayAudio("StoneCollisionAudio");
+                    else
+                        mainController.PlayAudio("DiamondCollisionAudio");
+                    return true;
                 }
         }
         return true;

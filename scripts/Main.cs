@@ -47,6 +47,7 @@ public partial class Main : Node
     private PackedScene metalWallScene = GD.Load<PackedScene>("res://scenes//metal-wall.tscn");
     private PackedScene explosionScene = GD.Load<PackedScene>("res://scenes//explosion.tscn");
     private PackedScene enemySquareScene = GD.Load<PackedScene>("res://scenes//enemy-square.tscn");
+    private PackedScene amoebaScene = GD.Load<PackedScene>("res://scenes//amoeba.tscn");
 
     private List<BaseGridObjectController> levelGrid = [];
 
@@ -216,10 +217,17 @@ public partial class Main : Node
             AddGridItem<Diamond, FallingObjectController>(diamondScene, ItemType.Diamond, new(x * SPRITE_WIDTH, y * SPRITE_HEIGHT), new(x, y));
         }
 
+        void spawnAmoeba(int x, int y)
+        {
+            RemoveGridItem(new(x, y));
+            AddGridItem<Amoeba, AmoebaController>(amoebaScene, ItemType.Amoeba, new(x * SPRITE_WIDTH, y * SPRITE_HEIGHT), new(x, y));
+        }
+
         spawnEmptyLevel();
         spawnEnemies();
         spawnRocks();
         spawnDiamonds();
+        spawnAmoeba(1, 2);
 
         /*
         for (int x = 0; x < testLevelGridSize.X; x++)

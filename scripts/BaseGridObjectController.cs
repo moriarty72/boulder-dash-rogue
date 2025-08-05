@@ -12,6 +12,7 @@ public enum ItemType
     DoorOpen,
     Diamond,
     Explosion,
+    Amoeba,
     EnemySquare
 }
 

@@ -1,0 +1,58 @@
+[gd_scene load_steps=9 format=3 uid="uid://cwan1jnblon2c"]
+
+[ext_resource type="Texture2D" uid="uid://cfoxpa77yre7o" path="res://assets/amoeba.png" id="1_gar2i"]
+[ext_resource type="Script" uid="uid://cd88ktrtjaol0" path="res://scripts/Amoeba.cs" id="1_mgytw"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_mgytw"]
+atlas = ExtResource("1_gar2i")
+region = Rect2(0, 0, 64, 64)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_b7flb"]
+atlas = ExtResource("1_gar2i")
+region = Rect2(0, 64, 64, 64)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_ksjwy"]
+atlas = ExtResource("1_gar2i")
+region = Rect2(0, 128, 64, 64)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_mrqic"]
+atlas = ExtResource("1_gar2i")
+region = Rect2(0, 192, 64, 64)
+
+[sub_resource type="SpriteFrames" id="SpriteFrames_btgtx"]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_mgytw")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_b7flb")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_ksjwy")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_mrqic")
+}],
+"loop": true,
+"name": &"default",
+"speed": 5.0
+}]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_hit7t"]
+size = Vector2(64, 64.5)
+
+[node name="Amoeba" type="Area2D"]
+script = ExtResource("1_mgytw")
+
+[node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="."]
+texture_filter = 3
+position = Vector2(32, 32)
+rotation = 1.5708
+sprite_frames = SubResource("SpriteFrames_btgtx")
+autoplay = "default"
+frame_progress = 0.552809
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+position = Vector2(32, 32)
+shape = SubResource("RectangleShape2D_hit7t")

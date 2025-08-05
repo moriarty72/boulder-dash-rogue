@@ -68,12 +68,6 @@ public partial class EnemySquareController : BaseGridObjectController
     {
         PrevGridPosition = GridPosition;
         GridPosition = newPosition;
-
-        /*
-        mainController.SwapGridItems(GridPosition, newPosition, false);
-        NodeObject.GlobalPosition = new(newPosition.X * 64, newPosition.Y * 64);
-        GridPosition = newPosition;
-        */
     }
 
     private void CheckCollision()
