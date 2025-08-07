@@ -108,6 +108,15 @@ public partial class Main : Node
         return bgo;
     }
 
+    public void ReplaceGridItem(int x, int y, ItemType newItemType)
+    {
+        if (newItemType == ItemType.Amoeba)
+        {
+            RemoveGridItem(new(x, y));
+            AddGridItem<Amoeba, AmoebaController>(amoebaScene, ItemType.Amoeba, new(x * SPRITE_WIDTH, y * SPRITE_HEIGHT), new(x, y));
+        }
+    }
+
     public BaseGridObjectController GetGridItem(int x, int y)
     {
         int index = GetGridIndex(x, y);
@@ -297,6 +306,11 @@ public partial class Main : Node
     public void PlayAudio(string audioName)
     {
         GetNode<AudioStreamPlayer2D>(audioName)?.Play();
+    }
+
+    public void StopAudio(string audioName)
+    {
+        GetNode<AudioStreamPlayer2D>(audioName)?.Stop();
     }
 
     public void SwapGridItems(Vector2I prevPosition, Vector2I newPosition, bool replaceNext)

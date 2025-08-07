@@ -4,36 +4,67 @@ using System.Collections.Generic;
 
 public partial class AmoebaController : BaseGridObjectController
 {
-    private class AmoebaItem
+    private class AmoebaTreeNode
     {
+        public bool isRoot = false;
         public Vector2I gridPosition;
+        public List<AmoebaTreeNode> children = [];
     }
 
     private const double GROW_TIME = 60;
-    private const double GROW_TICK = 10;
 
-    private const double SPAWN_LIMIT = 10;
+    private const double GLOBAL_SPAWN_LIMIT = 100;
+    private const int MAX_CHILD_NODE = 2;
 
     private double timeTick = 0;
-    private double growTick = GROW_TICK * 0.75;
+    private static double growTick = 0;
     private double currentGrowTick = 0;
 
-    private int amoebaSpawnCount = 1;
+    private static int globalAmoebaSpawnCount = 1;
+    private int currentAmoebaNodeSpawnCount = 0;
 
-    private List<AmoebaItem> amoebas = [];
 
     public override void Initialize<T>(Main mc, PackedScene packedScene, ItemType itemType, Vector2 worldPosition, Vector2I gridPosition)
     {
         base.Initialize<T>(mc, packedScene, itemType, worldPosition, gridPosition);
 
+        if (growTick == 0)
+            growTick = 2.0;
+
         // mainController.PlayAudio("AmoebaAudio");
-        amoebas.Add(new() { gridPosition = GridPosition });
+    }
+
+    private Vector2I GetRandomOffset()
+    {
+        // Vector2I[] spawnOffsets = [new(1, 0), new(1, -1), new(0, -1), new(-1, -1), new(-1, 0), new(-1, 1), new(0, 1), new(1, 1)];
+
+        Vector2I[] spawnOffsets = [new(1, 0), new(0, -1), new(-1, 0), new(0, 1)];
+
+        Random rnd = new(System.Environment.TickCount);
+        int rndIndex = rnd.Next(100);
+        return spawnOffsets[rndIndex % 4];
     }
 
     private bool Spawn()
     {
+        // spawn children
+        Vector2I offset = GetRandomOffset();
 
-        return true;
+        var gridItem = mainController.GetGridItem(GridPosition.X + offset.X, GridPosition.Y + offset.Y);
+        if (gridItem.Type == ItemType.Mud)
+        {
+            mainController.ReplaceGridItem(GridPosition.X + offset.X, GridPosition.Y + offset.Y, ItemType.Amoeba);
+            currentAmoebaNodeSpawnCount++;
+            globalAmoebaSpawnCount++;
+
+            return true;
+        }
+        return false;
+    }
+
+    private void Mutate(double delta)
+    {
+
     }
 
     private void Grow(double delta)
@@ -48,12 +79,19 @@ public partial class AmoebaController : BaseGridObjectController
             return;
         }
         currentGrowTick = 0;
-        growTick *= 0.5;
 
-        if (amoebaSpawnCount < SPAWN_LIMIT)
-            amoebaSpawnCount += 1;
+        if (globalAmoebaSpawnCount < GLOBAL_SPAWN_LIMIT)
+        {
+            GD.Print("Amoeba time:", (int)timeTick, " global amoeba spawn: ", globalAmoebaSpawnCount);
 
-        GD.Print("Amoeba time:", (int)timeTick, " amoeba to spawn: ", amoebaSpawnCount);
+            if (currentAmoebaNodeSpawnCount < MAX_CHILD_NODE)
+            {
+                if (!Spawn())
+                    growTick -= (growTick * 0.10);
+                else
+                    growTick = 2.0;
+            }
+        }
     }
 
     public override void ProcessAndUpdate(double delta)
