@@ -50,18 +50,27 @@ public class BaseGridObjectController
 
     protected bool UpdateNodeObjectPosition()
     {
+        if (Type == ItemType.None)
+            return false;
+
         if (PrevGridPosition != GridPosition)
         {
-            NodeObject.GlobalPosition = new(GridPosition.X * 64, GridPosition.Y * 64);
-            mainController.SwapGridItems(PrevGridPosition, GridPosition, true);
+            try
+            {
+                NodeObject.GlobalPosition = new(GridPosition.X * 64, GridPosition.Y * 64);
+                mainController.SwapGridItems(PrevGridPosition, GridPosition, true);
 
-            PrevGridPosition = GridPosition;
-
+                PrevGridPosition = GridPosition;
+            }
+            catch (Exception ex)
+            {
+                GD.Print("BaseGridObjectController exception: ", ex.Message, " object type: ", Type, " position ", GridPosition);
+            }
             return true;
         }
         return false;
     }
-    
+
     public virtual void ProcessAndUpdate(double delta)
     {
         if (Type == ItemType.None)
@@ -79,5 +88,17 @@ public class BaseGridObjectController
 
             Type = ItemType.None;
         }
+    }
+
+    public static BaseGridObjectController SpawnNone(Main mc, Vector2I gridPosition)
+    {
+        BaseGridObjectController noneObject = new BaseGridObjectController()
+        {
+            Type = ItemType.None,
+            mainController = mc,
+            GridPosition = gridPosition
+        };
+
+        return noneObject;
     }
 }

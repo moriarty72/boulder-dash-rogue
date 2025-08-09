@@ -80,6 +80,7 @@ public partial class RockfordController : BaseGridObjectController
                         return true;
                     }
 
+                case ItemType.Amoeba:
                 case ItemType.MetalWall:
                     return false;
             }

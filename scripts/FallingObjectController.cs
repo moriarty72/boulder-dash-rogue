@@ -153,6 +153,9 @@ public partial class FallingObjectController : BaseGridObjectController
 
     public override void ProcessAndUpdate(double delta)
     {
+        if (CurrentState == State.Dead)
+            return;
+            
         CurrentState = ProcessCurrentState();
         if (ProcessPosition(delta))
             Update(delta);

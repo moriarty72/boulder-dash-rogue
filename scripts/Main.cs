@@ -115,6 +115,16 @@ public partial class Main : Node
             RemoveGridItem(new(x, y));
             AddGridItem<Amoeba, AmoebaController>(amoebaScene, ItemType.Amoeba, new(x * SPRITE_WIDTH, y * SPRITE_HEIGHT), new(x, y));
         }
+        else if (newItemType == ItemType.Rock)
+        {
+            RemoveGridItem(new(x, y));
+            AddGridItem<Rock, FallingObjectController>(rockScene, ItemType.Rock, new(x * SPRITE_WIDTH, y * SPRITE_HEIGHT), new(x, y));
+        }
+        else if (newItemType == ItemType.Diamond)
+        {
+            RemoveGridItem(new(x, y));
+            AddGridItem<Diamond, FallingObjectController>(diamondScene, ItemType.Diamond, new(x * SPRITE_WIDTH, y * SPRITE_HEIGHT), new(x, y));            
+        }
     }
 
     public BaseGridObjectController GetGridItem(int x, int y)
