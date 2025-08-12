@@ -5,7 +5,7 @@ using System.Dynamic;
 
 public partial class EnemySquareController : BaseGridObjectController
 {
-    private double lastMoveTick = 0;
+    private Timer processTimer = new(0.1);
 
     private Vector2I moveDirection = new(1, 0);
 
@@ -70,30 +70,10 @@ public partial class EnemySquareController : BaseGridObjectController
         GridPosition = newPosition;
     }
 
-    private void CheckCollision()
-    {
-        /*
-        Vector2I[] collisionOffset = [new(1, 0), new(0, -1), new(-1, 0), new(0, 1)];
-
-        for (int i = 0; i < collisionOffset.Length; i++)
-        {
-            if (mainController.CheckObjectCollision(GridPosition, collisionOffset[i].X, collisionOffset[i].Y, this))
-            {
-                mainController.RemoveGridItem(GridPosition);
-                break;
-            }
-        }
-        */
-    }
-
     public override void ProcessAndUpdate(double delta)
     {
-        if ((lastMoveTick == 0) || (lastMoveTick <= 0.10))
-        {
-            lastMoveTick += delta;
+        if (!processTimer.IsElapsed(delta))
             return;
-        }
-        lastMoveTick = 0;
 
         MoveByDirection(delta);
         UpdateNodeObjectPosition();

@@ -7,7 +7,7 @@ public partial class EnemyButterflyController : BaseGridObjectController
 {
     private Timer processTimer = new(0.35);
 
-    private void MoveByDirection(double delta)
+    private void MoveToRockford(double delta)
     {
         Vector2I calculateMoveOffset()
         {
@@ -18,7 +18,6 @@ public partial class EnemyButterflyController : BaseGridObjectController
             int y = movePosition.Y > 0 ? 1 : (movePosition.Y < 0 ? -1 : 0);
 
             Vector2I offset = new(x, y);
-            // GD.Print("Butterfly move direction = ", offset, movePosition);
 
             return offset;
         }
@@ -52,7 +51,7 @@ public partial class EnemyButterflyController : BaseGridObjectController
         if (!processTimer.IsElapsed(delta))
             return;
 
-        MoveByDirection(delta);
+        MoveToRockford(delta);
         UpdateNodeObjectPosition();
     }
 }

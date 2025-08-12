@@ -1,0 +1,57 @@
+[gd_scene load_steps=9 format=3 uid="uid://bmc2ek0ggptet"]
+
+[ext_resource type="Script" uid="uid://dvr7tpdlckn2q" path="res://scripts/EnemyStar.cs" id="1_cc2et"]
+[ext_resource type="Texture2D" uid="uid://b7a5cjsc5db0a" path="res://assets/enemy-star.png" id="1_too74"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_cc2et"]
+atlas = ExtResource("1_too74")
+region = Rect2(0, 0, 64, 64)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_3rmi7"]
+atlas = ExtResource("1_too74")
+region = Rect2(0, 64, 64, 64)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_b4yhk"]
+atlas = ExtResource("1_too74")
+region = Rect2(0, 128, 64, 64)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_0v107"]
+atlas = ExtResource("1_too74")
+region = Rect2(0, 192, 64, 64)
+
+[sub_resource type="SpriteFrames" id="SpriteFrames_exkmp"]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_cc2et")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_3rmi7")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_b4yhk")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_0v107")
+}],
+"loop": true,
+"name": &"default",
+"speed": 5.0
+}]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_too74"]
+size = Vector2(63.75, 62)
+
+[node name="Enemy-star" type="Area2D"]
+script = ExtResource("1_cc2et")
+
+[node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="."]
+texture_filter = 1
+position = Vector2(32, 32)
+sprite_frames = SubResource("SpriteFrames_exkmp")
+autoplay = "default"
+frame_progress = 0.933329
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+position = Vector2(32.125, 31)
+shape = SubResource("RectangleShape2D_too74")

@@ -100,10 +100,10 @@ public partial class AmoebaController : BaseGridObjectController
         }
 
         if ((currentGrowTick == 0) || (currentGrowTick <= growTick))
-            {
-                currentGrowTick += delta;
-                return;
-            }
+        {
+            currentGrowTick += delta;
+            return;
+        }
         currentGrowTick = 0;
 
         if (globalAmoebaSpawnCount <= GLOBAL_SPAWN_LIMIT)
