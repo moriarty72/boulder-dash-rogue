@@ -38,8 +38,8 @@ public partial class AmoebaController : BaseGridObjectController
         {
             growTick = GROW_TICK;
             spawnedAmoebaPosition.Add(GridPosition);
+            mainController.PlayAudio("AmoebaAudio");
         }
-        // mainController.PlayAudio("AmoebaAudio");
     }
 
     private Vector2I GetRandomOffset()
@@ -78,6 +78,8 @@ public partial class AmoebaController : BaseGridObjectController
     {
         if (currentAmoemaIndex == 0)
         {
+            mainController.StopAudio("AmoebaAudio");
+
             ItemType mutationType = (globalAmoebaSpawnCount >= GLOBAL_SPAWN_LIMIT) ? ItemType.Rock : ItemType.Diamond;
             foreach (var amoebaPosition in spawnedAmoebaPosition)
             {

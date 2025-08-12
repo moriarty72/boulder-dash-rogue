@@ -60,7 +60,7 @@ public partial class FallingObjectController : BaseGridObjectController
                         return State.Fall;
                     else if (gridItem.Type == ItemType.Rockford)
                         return State.RockfordCollision;
-                    else if (gridItem.Type == ItemType.EnemySquare)
+                    else if ((gridItem.Type == ItemType.EnemySquare) || (gridItem.Type == ItemType.EnemyButterfly))
                         return State.EnemyCollision;
                     else
                         return State.GenericCollision;

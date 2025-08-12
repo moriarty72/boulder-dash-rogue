@@ -47,6 +47,7 @@ public partial class Main : Node
     private PackedScene metalWallScene = GD.Load<PackedScene>("res://scenes//metal-wall.tscn");
     private PackedScene explosionScene = GD.Load<PackedScene>("res://scenes//explosion.tscn");
     private PackedScene enemySquareScene = GD.Load<PackedScene>("res://scenes//enemy-square.tscn");
+    private PackedScene enemyButterflyScene = GD.Load<PackedScene>("res://scenes//enemy-butterfly.tscn");
     private PackedScene amoebaScene = GD.Load<PackedScene>("res://scenes//amoeba.tscn");
 
     private List<BaseGridObjectController> levelGrid = [];
@@ -145,6 +146,11 @@ public partial class Main : Node
         levelGrid[index].Dead();
     }
 
+    public Vector2I GetRockfordPosition()
+    {
+        return player.GridPosition;
+    }
+
     private void InitilizeLevelGrid()
     {
         Camera2D camera2D = GetNode<Camera2D>("Camera2D");
@@ -213,7 +219,8 @@ public partial class Main : Node
                 }
             }
 
-            AddGridItem<EnemySquare, EnemySquareController>(enemySquareScene, ItemType.EnemySquare, new(enemyBoxPosition.X * SPRITE_WIDTH, enemyBoxPosition.Y * SPRITE_HEIGHT), new(enemyBoxPosition.X, enemyBoxPosition.Y));
+            // AddGridItem<EnemySquare, EnemySquareController>(enemySquareScene, ItemType.EnemySquare, new(enemyBoxPosition.X * SPRITE_WIDTH, enemyBoxPosition.Y * SPRITE_HEIGHT), new(enemyBoxPosition.X, enemyBoxPosition.Y));
+            AddGridItem<EnemyButterfly, EnemyButterflyController>(enemyButterflyScene, ItemType.EnemyButterfly, new(enemyBoxPosition.X * SPRITE_WIDTH, enemyBoxPosition.Y * SPRITE_HEIGHT), new(enemyBoxPosition.X, enemyBoxPosition.Y));
         }
 
         void spawnRocks()
@@ -246,47 +253,7 @@ public partial class Main : Node
         spawnEnemies();
         spawnRocks();
         spawnDiamonds();
-        spawnAmoeba(1, 2);
-
-        /*
-        for (int x = 0; x < testLevelGridSize.X; x++)
-        {
-            int rockToSpawn = rockPerColumn;
-            int diamondToSpawn = diamondPerColumn;
-
-            for (int y = 0; y < testLevelGridSize.Y; y++)
-            {
-                if ((x == testRockfordPosition.X) && (y == testRockfordPosition.Y))
-                    continue;
-
-                bool isCorner = ((x == 0) && (y == 0)) || ((x == 0) && (y == (testLevelGridSize.Y - 1))) || ((x == (testLevelGridSize.X - 1)) && (y == 0)) || ((x == (testLevelGridSize.X - 1)) && (y == (testLevelGridSize.Y - 1)));
-                bool isSide = ((x > 0) && (x < testLevelGridSize.X) && ((y == 0) || (y == (testLevelGridSize.Y - 1)))) || ((y > 0) && (y < testLevelGridSize.Y) && ((x == 0) || (x == (testLevelGridSize.X - 1))));
-
-                if (isCorner || isSide)
-                {
-                    AddGridItem<MetalWall, BaseGridObject>(metalWallScene, ItemType.MetalWall, new(x * SPRITE_WIDTH, y * SPRITE_HEIGHT), new(x, y));
-                }
-                else
-                {
-                    // if ((x == 4) && (y == 4))
-                    if ((x > 2) && (y > 2) && ((rnd.Next(1, 100) % 5) == 0) && (rockToSpawn > 0))
-                    {
-                        AddGridItem<Rock, FallingObject>(rockScene, ItemType.Rock, new(x * SPRITE_WIDTH, y * SPRITE_HEIGHT), new(x, y));
-                        rockToSpawn--;
-                    }
-                    else if ((x > 2) && (y > 2) && ((rnd.Next(1, 100) % 5) == 0) && (diamondToSpawn > 0))
-                    {
-                        AddGridItem<Diamond, FallingObject>(diamondScene, ItemType.Diamond, new(x * SPRITE_WIDTH, y * SPRITE_HEIGHT), new(x, y));
-                        diamondToSpawn--;
-                    }
-                    else
-                    {
-                        AddGridItem<Mud1, BaseGridObject>(mudScene, ItemType.Mud, new(x * SPRITE_WIDTH, y * SPRITE_HEIGHT), new(x, y));
-                    }
-                }
-            }
-        }
-        */
+        // spawnAmoeba(1, 2);
     }
 
     public UserEvent GetInputEvent(double delta)
@@ -405,6 +372,7 @@ public partial class Main : Node
         }
 
     }
+
     private void HandleInput(double delta)
     {
         if (!inputEnabled)

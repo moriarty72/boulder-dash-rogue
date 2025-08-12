@@ -44,4 +44,4 @@ stream = ExtResource("6_tefeu")
 
 [node name="AmoebaAudio" type="AudioStreamPlayer2D" parent="."]
 stream = ExtResource("7_o6xl0")
-parameters/looping = false
+parameters/looping = true

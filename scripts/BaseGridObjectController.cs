@@ -13,7 +13,8 @@ public enum ItemType
     Diamond,
     Explosion,
     Amoeba,
-    EnemySquare
+    EnemySquare,
+    EnemyButterfly
 }
 
 public class BaseGridObjectController
