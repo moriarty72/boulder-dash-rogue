@@ -1,4 +1,5 @@
 using Godot;
+using ProceduralDungeon.Level;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -50,6 +51,8 @@ public partial class Main : Node
     private PackedScene enemyButterflyScene = GD.Load<PackedScene>("res://scenes//enemy-butterfly.tscn");
     private PackedScene amoebaScene = GD.Load<PackedScene>("res://scenes//amoeba.tscn");
     private PackedScene doorScene = GD.Load<PackedScene>("res://scenes//door.tscn");
+    private PackedScene keyScene = GD.Load<PackedScene>("res://scenes//key.tscn");
+
 
     private List<BaseGridObjectController> levelGrid = [];
 
@@ -81,6 +84,33 @@ public partial class Main : Node
     private bool inputEnabled = true;
     private GameState gameState = GameState.gsInitialize;
 
+    // dungeon management
+    [Export]
+    public int roomGridWidth;
+    [Export]
+    public int roomGridHeight;
+    [Export]
+    public int roomCount;
+    [Export]
+    public int seed;
+    [Export]
+    public int deepLevel;
+    [Export]
+    public int minRoomWidthSize;
+    [Export]
+    public int minRoomHeightSize;
+    [Export]
+    public int maxRoomWidthSize;
+    [Export]
+    public int maxRoomHeightSize;
+
+    private DungeonLevel dungeonLevel;
+    private DungeonRoom dungeonRoom;
+    private int playerKeyLevel = 0;
+
+    public DungeonRoom CurrentRoom { get { return dungeonRoom; } }
+
+
     public override void _Ready()
     {
     }
@@ -89,7 +119,10 @@ public partial class Main : Node
     {
         CleanupLevelObjects();
         InitilizeLevelGrid();
-        SpawnTestLevel();
+        // SpawnTestLevel();
+        InitializeDungeon();
+        SpawnRoomTiles();
+        SpawnRoomItems();
         SpawnRockford();
     }
 
@@ -125,7 +158,7 @@ public partial class Main : Node
         else if (newItemType == ItemType.Diamond)
         {
             RemoveGridItem(new(x, y));
-            AddGridItem<Diamond, FallingObjectController>(diamondScene, ItemType.Diamond, new(x * SPRITE_WIDTH, y * SPRITE_HEIGHT), new(x, y));            
+            AddGridItem<Diamond, FallingObjectController>(diamondScene, ItemType.Diamond, new(x * SPRITE_WIDTH, y * SPRITE_HEIGHT), new(x, y));
         }
     }
 
@@ -145,6 +178,15 @@ public partial class Main : Node
     {
         int index = levelGrid.IndexOf(baseGridObject);
         levelGrid[index].Dead();
+    }
+
+    public void RemoveAllGridObjects()
+    {
+        for (int index = 0; index < levelGrid.Count; index++)
+        {
+            levelGrid[index].Dead();
+        }
+        levelGrid = [];
     }
 
     public Vector2I GetRockfordPosition()
@@ -168,6 +210,119 @@ public partial class Main : Node
             }
         }
     }
+
+    #region Dungeon Management
+    private void InitializeDungeon()
+    {
+        dungeonLevel = new DungeonLevel(roomGridWidth, roomGridHeight, roomCount, seed, deepLevel, minRoomWidthSize, minRoomHeightSize, maxRoomWidthSize, maxRoomHeightSize);
+        dungeonLevel.Build();
+
+        dungeonRoom = dungeonLevel.StartingRoom;
+    }
+
+    private void SpawnRoomItems()
+    {
+        dungeonRoom.Items.ForEach(item =>
+        {
+            try
+            {
+                string itemResource = null;
+                if (item.GetType() == typeof(DungeonItemKey))
+                {
+                    DungeonItemKey dungeonItemKey = (DungeonItemKey)item;
+
+                    RemoveGridItem(dungeonItemKey.Position.ToVector2I());
+                    KeyController keyObject = (KeyController)AddGridItem<Key, KeyController>(keyScene, ItemType.Key, new(dungeonItemKey.Position.X * SPRITE_WIDTH, dungeonItemKey.Position.Y * SPRITE_HEIGHT), dungeonItemKey.Position.ToVector2I());
+
+                    keyObject.SetKeyColor((DoorController.Color)dungeonItemKey.KeyLevel);
+                }
+            }
+            catch (Exception e)
+            {
+                GD.Print("DungeonMaster.RenderRoomItems: exception " + e.Message);
+            }
+        });
+    }
+
+    private void SpawnRoomTiles()
+    {
+        // instantiate doors...
+        DungeonRoomConnection roomUpConnection = dungeonRoom.RoomConnections[(int)DungeonRoom.Connection.Up];
+        DungeonRoomConnection roomRightConnection = dungeonRoom.RoomConnections[(int)DungeonRoom.Connection.Right];
+        DungeonRoomConnection roomBottomConnection = dungeonRoom.RoomConnections[(int)DungeonRoom.Connection.Down];
+        DungeonRoomConnection roomLeftConnection = dungeonRoom.RoomConnections[(int)DungeonRoom.Connection.Left];
+
+        for (int y = 0; y < dungeonRoom.HeightSize; y++)
+        {
+            for (int x = 0; x < dungeonRoom.WidthSize; x++)
+            {
+                Vector2I tilePosition = new(x, y);
+
+                if ((roomUpConnection != null) && (y == 0) && (x == dungeonRoom.RoomConnectionPositions[(int)DungeonRoom.Connection.Up]))
+                {
+                    SpawnDoor(roomUpConnection, DungeonRoom.Connection.Up, tilePosition);
+                    continue;
+                }
+
+                if ((roomRightConnection != null) && (x == dungeonRoom.WidthSize - 1) && (y == dungeonRoom.RoomConnectionPositions[(int)DungeonRoom.Connection.Right]))
+                {
+                    SpawnDoor(roomRightConnection, DungeonRoom.Connection.Right, tilePosition);
+                    continue;
+                }
+
+                if ((roomBottomConnection != null) && (y == dungeonRoom.HeightSize - 1) && (x == dungeonRoom.RoomConnectionPositions[(int)DungeonRoom.Connection.Down]))
+                {
+                    SpawnDoor(roomBottomConnection, DungeonRoom.Connection.Down, tilePosition);
+                    continue;
+                }
+
+                if ((roomLeftConnection != null) && (x == 0) && (y == dungeonRoom.RoomConnectionPositions[(int)DungeonRoom.Connection.Left]))
+                {
+                    SpawnDoor(roomLeftConnection, DungeonRoom.Connection.Left, tilePosition);
+                    continue;
+                }
+
+                bool isCorner = ((x == 0) && (y == 0)) || ((x == 0) && (y == (dungeonRoom.HeightSize - 1))) || ((x == (dungeonRoom.WidthSize - 1)) && (y == 0)) || ((x == (dungeonRoom.WidthSize - 1)) && (y == (dungeonRoom.HeightSize - 1)));
+                bool isSide = ((x > 0) && (x < dungeonRoom.WidthSize) && ((y == 0) || (y == (dungeonRoom.HeightSize - 1)))) || ((y > 0) && (y < dungeonRoom.HeightSize) && ((x == 0) || (x == (dungeonRoom.WidthSize - 1))));
+
+                if (isCorner || isSide)
+                {
+                    AddGridItem<MetalWall, BaseGridObjectController>(metalWallScene, ItemType.MetalWall, new(x * SPRITE_WIDTH, y * SPRITE_HEIGHT), new(x, y));
+                }
+                else
+                {
+                    AddGridItem<Mud1, BaseGridObjectController>(mudScene, ItemType.Mud, new(x * SPRITE_WIDTH, y * SPRITE_HEIGHT), new(x, y));
+                }
+            }
+        }
+    }
+
+    private void SpawnDoor(DungeonRoomConnection roomConnection, DungeonRoom.Connection connection, Vector2I position)
+    {
+        Vector2I doorPosition = position;
+        DoorController doorObject = (DoorController)AddGridItem<Door, DoorController>(doorScene, ItemType.Door, new(doorPosition.X * SPRITE_WIDTH, doorPosition.Y * SPRITE_HEIGHT), new(doorPosition.X, doorPosition.Y));
+
+        doorObject.RoomConnection = roomConnection;
+        if (roomConnection.IsLocked)
+            doorObject.CurrentColor = (DoorController.Color)roomConnection.UnlockLevelNeeded;
+        else
+        {
+            doorObject.CurrentColor = DoorController.Color.Brown;
+            doorObject.CurrentState = DoorController.State.Opened;
+        }
+    }
+
+    public void ChangeRoom(DungeonRoomConnection dungeonRoomConnection)
+    {
+        RemoveAllGridObjects();
+
+        dungeonRoom = dungeonRoomConnection.DestinationRoom;
+
+        SpawnRoomTiles();
+        SpawnRoomItems();
+        SpawnRockford();
+    }
+    #endregion
 
     private void CleanupLevelObjects()
     {
@@ -278,6 +433,8 @@ public partial class Main : Node
 
     private void SpawnRockford()
     {
+        RemoveGridItem(testRockfordPosition);
+
         player = AddGridItem<Rockford, RockfordController>(playerScene, ItemType.Rockford, new(testRockfordPosition.X * SPRITE_WIDTH, testRockfordPosition.Y * SPRITE_HEIGHT), testRockfordPosition);
 
         Camera2D camera2D = GetNode<Camera2D>("Camera2D");
@@ -446,7 +603,7 @@ public partial class Main : Node
     {
         for (int i = 0; i < levelGrid.Count; i++)
         {
-            levelGrid[i].ProcessAndUpdate(delta);
+            levelGrid[i]?.ProcessAndUpdate(delta);
         }
     }
 

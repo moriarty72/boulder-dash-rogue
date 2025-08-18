@@ -1,4 +1,4 @@
-[gd_scene load_steps=9 format=3 uid="uid://b70onn202o232"]
+[gd_scene load_steps=10 format=3 uid="uid://b70onn202o232"]
 
 [ext_resource type="Script" uid="uid://bn5mtotml51bv" path="res://scripts/Main.cs" id="1_o5qli"]
 [ext_resource type="AudioStream" uid="uid://0fodhcl5ss8k" path="res://assets/audio/exploded.ogg" id="2_0wfyh"]
@@ -7,6 +7,7 @@
 [ext_resource type="AudioStream" uid="uid://dssjajw4rwjfa" path="res://assets/audio/stone.ogg" id="4_tbgi4"]
 [ext_resource type="AudioStream" uid="uid://diwouj8owfe7v" path="res://assets/audio/diamond_1.ogg" id="6_tefeu"]
 [ext_resource type="AudioStream" uid="uid://duafy5u47bqp6" path="res://assets/audio/amoeba.ogg" id="7_o6xl0"]
+[ext_resource type="AudioStream" uid="uid://doyhd7cqqw5yp" path="res://assets/audio/crack.ogg" id="8_tipki"]
 
 [sub_resource type="CanvasItemMaterial" id="CanvasItemMaterial_o5qli"]
 
@@ -15,6 +16,15 @@ material = SubResource("CanvasItemMaterial_o5qli")
 script = ExtResource("1_o5qli")
 disableInputDelay = 0.15
 testLevelGridSize = Vector2i(40, 24)
+roomGridWidth = 40
+roomGridHeight = 24
+roomCount = 10
+seed = 12972
+deepLevel = 5
+minRoomWidthSize = 10
+minRoomHeightSize = 8
+maxRoomWidthSize = 40
+maxRoomHeightSize = 24
 
 [node name="Camera2D" type="Camera2D" parent="."]
 limit_left = 0
@@ -45,3 +55,6 @@ stream = ExtResource("6_tefeu")
 [node name="AmoebaAudio" type="AudioStreamPlayer2D" parent="."]
 stream = ExtResource("7_o6xl0")
 parameters/looping = true
+
+[node name="KeyAudio" type="AudioStreamPlayer2D" parent="."]
+stream = ExtResource("8_tipki")

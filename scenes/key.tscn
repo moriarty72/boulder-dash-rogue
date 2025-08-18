@@ -1,0 +1,48 @@
+[gd_scene load_steps=8 format=3 uid="uid://doib732x5xh5b"]
+
+[ext_resource type="Script" uid="uid://5bc8wwk5ulsj" path="res://scripts/Key.cs" id="1_b4qnb"]
+[ext_resource type="Texture2D" uid="uid://cfqe8b1somurl" path="res://assets/key-blue.png" id="1_jcln5"]
+[ext_resource type="Texture2D" uid="uid://bvhlt7ghm08be" path="res://assets/key-green.png" id="2_b4qnb"]
+[ext_resource type="Texture2D" uid="uid://c8qckcnae35tb" path="res://assets/key-red.png" id="3_6t41w"]
+[ext_resource type="Texture2D" uid="uid://c40estub5o8kw" path="res://assets/key-silver.png" id="4_ljj5h"]
+[ext_resource type="Texture2D" uid="uid://bt45qt38sxdjs" path="res://assets/key-yellow.png" id="5_upbuq"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_8cac7"]
+size = Vector2(63.75, 63)
+
+[node name="Key" type="Area2D"]
+script = ExtResource("1_b4qnb")
+
+[node name="Blue" type="Sprite2D" parent="."]
+visible = false
+texture_filter = 1
+position = Vector2(32, 32)
+texture = ExtResource("1_jcln5")
+
+[node name="Green" type="Sprite2D" parent="."]
+visible = false
+texture_filter = 1
+position = Vector2(32, 32)
+texture = ExtResource("2_b4qnb")
+
+[node name="Red" type="Sprite2D" parent="."]
+visible = false
+texture_filter = 1
+position = Vector2(32, 32)
+texture = ExtResource("3_6t41w")
+
+[node name="Silver" type="Sprite2D" parent="."]
+visible = false
+texture_filter = 1
+position = Vector2(32, 32)
+texture = ExtResource("4_ljj5h")
+
+[node name="Yellow" type="Sprite2D" parent="."]
+visible = false
+texture_filter = 1
+position = Vector2(32, 32)
+texture = ExtResource("5_upbuq")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+position = Vector2(32.125, 31.5)
+shape = SubResource("RectangleShape2D_8cac7")

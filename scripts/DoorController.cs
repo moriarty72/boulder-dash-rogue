@@ -1,4 +1,5 @@
 using Godot;
+using ProceduralDungeon.Level;
 using System;
 using System.Data;
 using System.Dynamic;
@@ -13,19 +14,24 @@ public partial class DoorController : BaseGridObjectController
 
     public enum Color
     {
-        Brown,
         Red,
         Green,
         Blue,
         Yellow,
-        Silver
+        Silver,
+        Brown
     }
 
-    public State CurrentState = State.Opened;
-    public Color CurrentColor = Color.Brown;
+    public State CurrentState = State.Locked;
+    public Color CurrentColor = Color.Blue;
+
+    public DungeonRoomConnection RoomConnection = null;
 
     public override void ProcessAndUpdate(double delta)
     {
+        if (NodeObject == null)
+            return;
+            
         if (CurrentState == State.Opened)
         {
             (NodeObject as Door).SetColorAndState(CurrentColor.ToString(), 1);

@@ -80,9 +80,25 @@ public partial class RockfordController : BaseGridObjectController
                         return true;
                     }
 
+                case ItemType.Door:
+                    {
+                        DoorController doorController = (DoorController)gridItem;
+                        if (doorController.CurrentState != DoorController.State.Locked)
+                            mainController.ChangeRoom(doorController.RoomConnection);
+
+                        return false;
+                    }
+
                 case ItemType.Amoeba:
                 case ItemType.MetalWall:
                     return false;
+
+                case ItemType.Key:
+                    {
+                        mainController.RemoveGridItem(gridItem.GridPosition);
+                        mainController.PlayAudio("KeyAudio");
+                        return true;
+                    }
             }
         }
         return true;

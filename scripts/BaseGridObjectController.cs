@@ -9,7 +9,7 @@ public enum ItemType
     MetalWall,
     Rock,
     Door,
-    DoorOpen,
+    Key,
     Diamond,
     Explosion,
     Amoeba,
