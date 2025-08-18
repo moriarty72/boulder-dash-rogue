@@ -21,8 +21,8 @@ roomGridHeight = 24
 roomCount = 10
 seed = 12972
 deepLevel = 5
-minRoomWidthSize = 10
-minRoomHeightSize = 8
+minRoomWidthSize = 16
+minRoomHeightSize = 12
 maxRoomWidthSize = 40
 maxRoomHeightSize = 24
 

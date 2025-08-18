@@ -28,7 +28,7 @@ public partial class Main : Node
     public Vector2I testLevelGridSize = new(20, 12);
 
     [Export]
-    public Vector2I testRockfordPosition = new(1, 1);
+    public Vector2I rockfordSpawnPosition = new(1, 1);
 
     [Export]
     public int rockCount = 10;
@@ -71,6 +71,7 @@ public partial class Main : Node
         gsInitialize,
         gsTitle,
         gsPlay,
+        gsChangeRoom,
         gsRockfordDead,
         gsGameOver
     }
@@ -118,17 +119,19 @@ public partial class Main : Node
     private void InitTestLevel()
     {
         CleanupLevelObjects();
+
+        InitializeDungeon();
         InitilizeLevelGrid();
         // SpawnTestLevel();
-        InitializeDungeon();
+
         SpawnRoomTiles();
         SpawnRoomItems();
-        SpawnRockford();
+        SpawnRockford(rockfordSpawnPosition);
     }
 
     private int GetGridIndex(int x, int y)
     {
-        int index = x + y * testLevelGridSize.X;
+        int index = x + y * dungeonRoom.WidthSize;
         return index;
     }
 
@@ -184,7 +187,8 @@ public partial class Main : Node
     {
         for (int index = 0; index < levelGrid.Count; index++)
         {
-            levelGrid[index].Dead();
+            if (levelGrid[index] != null)
+                levelGrid[index].Dead();
         }
         levelGrid = [];
     }
@@ -199,12 +203,12 @@ public partial class Main : Node
         Camera2D camera2D = GetNode<Camera2D>("Camera2D");
 
         camera2D.LimitTop = camera2D.LimitLeft = 0;
-        camera2D.LimitRight = testLevelGridSize.X * SPRITE_WIDTH;
-        camera2D.LimitBottom = testLevelGridSize.Y * SPRITE_HEIGHT;
+        camera2D.LimitRight = dungeonRoom.WidthSize * SPRITE_WIDTH;
+        camera2D.LimitBottom = dungeonRoom.HeightSize * SPRITE_HEIGHT;
 
-        for (int x = 0; x < testLevelGridSize.X; x++)
+        for (int x = 0; x < dungeonRoom.WidthSize; x++)
         {
-            for (int y = 0; y < testLevelGridSize.Y; y++)
+            for (int y = 0; y < dungeonRoom.HeightSize; y++)
             {
                 levelGrid.Add(null);
             }
@@ -226,7 +230,6 @@ public partial class Main : Node
         {
             try
             {
-                string itemResource = null;
                 if (item.GetType() == typeof(DungeonItemKey))
                 {
                     DungeonItemKey dungeonItemKey = (DungeonItemKey)item;
@@ -314,13 +317,10 @@ public partial class Main : Node
 
     public void ChangeRoom(DungeonRoomConnection dungeonRoomConnection)
     {
-        RemoveAllGridObjects();
-
+        gameState = GameState.gsChangeRoom;
         dungeonRoom = dungeonRoomConnection.DestinationRoom;
 
-        SpawnRoomTiles();
-        SpawnRoomItems();
-        SpawnRockford();
+        rockfordSpawnPosition = new(1, 1);
     }
     #endregion
 
@@ -431,11 +431,11 @@ public partial class Main : Node
         eventQueue.Clear();
     }
 
-    private void SpawnRockford()
+    private void SpawnRockford(Vector2I position)
     {
-        RemoveGridItem(testRockfordPosition);
+        RemoveGridItem(position);
 
-        player = AddGridItem<Rockford, RockfordController>(playerScene, ItemType.Rockford, new(testRockfordPosition.X * SPRITE_WIDTH, testRockfordPosition.Y * SPRITE_HEIGHT), testRockfordPosition);
+        player = AddGridItem<Rockford, RockfordController>(playerScene, ItemType.Rockford, new(position.X * SPRITE_WIDTH, position.Y * SPRITE_HEIGHT), position);
 
         Camera2D camera2D = GetNode<Camera2D>("Camera2D");
         RemoteTransform2D remoteTransform2D = new()
@@ -515,6 +515,19 @@ public partial class Main : Node
             case GameState.gsPlay:
                 {
                     ProcessGameObjects(delta);
+                    break;
+                }
+
+            case GameState.gsChangeRoom:
+                {
+                    RemoveAllGridObjects();
+
+                    InitilizeLevelGrid();
+                    SpawnRoomTiles();
+                    SpawnRoomItems();
+                    SpawnRockford(rockfordSpawnPosition);
+
+                    gameState = GameState.gsPlay;
                     break;
                 }
 
