@@ -34,6 +34,8 @@ namespace ProceduralDungeon.Level
         public int WidthSize { get { return widthSize; } }
         public int HeightSize { get { return heightSize; } }
 
+        public DungeonRoomState RoomState;
+
         public DungeonRoom(int index, int widthSize, int heightSize)
         {
             this.index = index;
@@ -43,6 +45,7 @@ namespace ProceduralDungeon.Level
             this.items = new List<DungeonItem>();
             this.widthSize = widthSize;
             this.heightSize = heightSize;
+            this.RoomState = new DungeonRoomState();
         }
 
         public bool HasAvailableConnections()

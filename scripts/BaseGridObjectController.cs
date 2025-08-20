@@ -29,6 +29,8 @@ public class BaseGridObjectController
     public Vector2 WorldPosition;
     public Node2D NodeObject { get; private set; }
 
+    private PackedScene currentPackedScene;
+
     public BaseGridObjectController()
     {
 
@@ -42,11 +44,49 @@ public class BaseGridObjectController
         WorldPosition = worldPosition;
         GridPosition = gridPosition;
         PrevGridPosition = gridPosition;
+        currentPackedScene = packedScene;
 
         NodeObject = packedScene.Instantiate<T>();
         NodeObject.GlobalPosition = worldPosition;
 
         mainController.AddChild(NodeObject);
+    }
+
+    public void InitializeEmpty(Main mc, Vector2 worldPosition, Vector2I gridPosition)
+    {
+        ID = new Guid();
+        mainController = mc;
+        Type = ItemType.None;
+        WorldPosition = worldPosition;
+        GridPosition = gridPosition;
+        PrevGridPosition = gridPosition;
+
+        NodeObject = null;
+    }
+
+    public void Respawn()
+    {
+        if (Type != ItemType.None)
+        {
+            NodeObject = (Node2D)currentPackedScene.Instantiate();
+            NodeObject.GlobalPosition = WorldPosition;
+        }
+
+        mainController.AddChild(NodeObject);
+    }
+
+    public BaseGridObjectController Clone()
+    {
+        return new()
+        {
+            ID = ID,
+            mainController = mainController,
+            Type = Type,
+            WorldPosition = WorldPosition,
+            GridPosition = GridPosition,
+            PrevGridPosition = GridPosition,
+            currentPackedScene = currentPackedScene
+        };
     }
 
     protected bool UpdateNodeObjectPosition()
@@ -93,7 +133,7 @@ public class BaseGridObjectController
 
     public static BaseGridObjectController SpawnNone(Main mc, Vector2I gridPosition)
     {
-        BaseGridObjectController noneObject = new BaseGridObjectController()
+        BaseGridObjectController noneObject = new()
         {
             Type = ItemType.None,
             mainController = mc,

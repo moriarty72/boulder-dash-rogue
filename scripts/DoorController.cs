@@ -14,11 +14,11 @@ public partial class DoorController : BaseGridObjectController
 
     public enum Color
     {
-        Red,
-        Green,
         Blue,
-        Yellow,
+        Green,
+        Red,
         Silver,
+        Yellow,
         Brown
     }
 
@@ -31,7 +31,7 @@ public partial class DoorController : BaseGridObjectController
     {
         if (NodeObject == null)
             return;
-            
+
         if (CurrentState == State.Opened)
         {
             (NodeObject as Door).SetColorAndState(CurrentColor.ToString(), 1);
