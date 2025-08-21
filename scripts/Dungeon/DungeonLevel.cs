@@ -145,7 +145,7 @@ namespace ProceduralDungeon.Level
             int roomWidthSize = rnd.Next(minRoomWidthSize, maxRoomWidthSize);
             int roomHeightSize = rnd.Next(minRoomHeightSize, maxRoomHeightSize);
 
-            DungeonRoom startRoom = new DungeonRoom(0, roomWidthSize, roomHeightSize)
+            DungeonRoom startRoom = new(0, roomWidthSize, roomHeightSize)
             {
                 Position = new Coordinate(width >> 1, height >> 1),
                 Weight = GetRoomWeight()
@@ -174,9 +174,6 @@ namespace ProceduralDungeon.Level
                 // create the new room
                 int roomWidthSize = rnd.Next(minRoomWidthSize, maxRoomWidthSize);
                 int roomHeightSize = rnd.Next(minRoomHeightSize, maxRoomHeightSize);
-
-                if (rooms.Count == 8)
-                    GD.Print("BREAK !!!");
 
                 DungeonRoom newRoom = new DungeonRoom(0, roomWidthSize, roomHeightSize)
                 {

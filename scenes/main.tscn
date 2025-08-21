@@ -19,12 +19,12 @@ testLevelGridSize = Vector2i(40, 24)
 roomGridWidth = 40
 roomGridHeight = 24
 roomCount = 10
-seed = 12972
-deepLevel = 5
-minRoomWidthSize = 16
+seed = 1972
+deepLevel = 4
+minRoomWidthSize = 20
 minRoomHeightSize = 12
-maxRoomWidthSize = 40
-maxRoomHeightSize = 24
+maxRoomWidthSize = 20
+maxRoomHeightSize = 12
 
 [node name="Camera2D" type="Camera2D" parent="."]
 limit_left = 0

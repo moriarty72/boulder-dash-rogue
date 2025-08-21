@@ -64,15 +64,21 @@ public class BaseGridObjectController
         NodeObject = null;
     }
 
-    public void Respawn()
+    public virtual void Respawn()
     {
         if (Type != ItemType.None)
         {
             NodeObject = (Node2D)currentPackedScene.Instantiate();
             NodeObject.GlobalPosition = WorldPosition;
-        }
 
-        mainController.AddChild(NodeObject);
+            mainController.AddChild(NodeObject);
+        }
+    }
+
+    public void RemoveNodeFromScene()
+    {
+        NodeObject?.QueueFree();
+        NodeObject = null;
     }
 
     public BaseGridObjectController Clone()

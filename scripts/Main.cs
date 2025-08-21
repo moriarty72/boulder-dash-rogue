@@ -86,10 +86,11 @@ public partial class Main : Node
     public int maxRoomHeightSize;
 
     private DungeonLevel dungeonLevel;
-    private DungeonRoomBase dungeonRoom;
+    private DungeonRoom dungeonRoom;
+    private DungeonRoomConnection roomConnection;
     private int playerKeyLevel = 0;
 
-    public DungeonRoomBase CurrentRoom { get { return dungeonRoom; } }
+    // public DungeonRoom CurrentRoom { get { return dungeonRoom; } }
 
     public override void _Ready()
     {
@@ -105,9 +106,17 @@ public partial class Main : Node
         SpawnRockford(rockfordSpawnPosition);
         */
 
-        dungeonRoom = new DungeonRoomBase(0, testLevelGridSize.X, testLevelGridSize.Y);
+        dungeonRoom = new DungeonRoom(0, testLevelGridSize.X, testLevelGridSize.Y);
         dungeonRoom.Activate(this);
-        
+    }
+
+    private void InitializeDungeon()
+    {
+        dungeonLevel = new DungeonLevel(roomGridWidth, roomGridHeight, roomCount, seed, deepLevel, minRoomWidthSize, minRoomHeightSize, maxRoomWidthSize, maxRoomHeightSize);
+        dungeonLevel.Build();
+
+        dungeonRoom = dungeonLevel.StartingRoom;
+        dungeonRoom.Activate(this);
     }
 
     private void InitializeCamera()
@@ -120,13 +129,6 @@ public partial class Main : Node
     }
 
     #region Dungeon Management
-    private void InitializeDungeon()
-    {
-        dungeonLevel = new DungeonLevel(roomGridWidth, roomGridHeight, roomCount, seed, deepLevel, minRoomWidthSize, minRoomHeightSize, maxRoomWidthSize, maxRoomHeightSize);
-        dungeonLevel.Build();
-
-        // dungeonRoom = dungeonLevel.StartingRoom;
-    }
 
     /*
         private void SpawnRoomTiles()
@@ -259,16 +261,19 @@ public partial class Main : Node
         eventQueue.Clear();
     }
 
-    private void SpawnRockford(Vector2I position)
+    public void AttachCameraToEntity(Node2D entity)
     {
-        var rockford = dungeonRoom.SpawnRockford(position);
-
         Camera2D camera2D = GetNode<Camera2D>("Camera2D");
+
+        camera2D.LimitTop = camera2D.LimitLeft = 0;
+        camera2D.LimitRight = dungeonRoom.WidthSize * Global.SPRITE_WIDTH;
+        camera2D.LimitBottom = dungeonRoom.HeightSize * Global.SPRITE_HEIGHT;
+
         RemoteTransform2D remoteTransform2D = new()
         {
             RemotePath = camera2D.GetPath()
         };
-        rockford.NodeObject.AddChild(remoteTransform2D);
+        entity.AddChild(remoteTransform2D);
     }
 
     public void PlayAudio(string audioName)
@@ -298,7 +303,8 @@ public partial class Main : Node
             case GameState.gsInitialize:
                 {
                     gameState = GameState.gsPlay;
-                    InitTestLevel();
+                    // InitTestLevel();
+                    InitializeDungeon();
                     break;
                 }
 
@@ -310,6 +316,8 @@ public partial class Main : Node
 
             case GameState.gsChangeRoom:
                 {
+                    dungeonRoom.Activate(this);
+
                     gameState = GameState.gsPlay;
                     break;
                 }
@@ -428,7 +436,12 @@ public partial class Main : Node
 
     public void ChangeRoom(DungeonRoomConnection dungeonRoomConnection)
     {
+        dungeonRoom.Deactivate();
+
+        gameState = GameState.gsChangeRoom;
         
+        roomConnection = dungeonRoomConnection;
+        dungeonRoom = dungeonRoomConnection.DestinationRoom;
     }
     #endregion
 }

@@ -7,4 +7,12 @@ public partial class KeyController : BaseGridObjectController
         keyColor = color;
         (NodeObject as Key).SetVisibleByColor((int)color);
     }
+
+    public override void Respawn()
+    {
+        base.Respawn();
+
+        if (NodeObject != null)
+            (NodeObject as Key).SetVisibleByColor((int)keyColor);
+    }
 }

@@ -12,7 +12,7 @@ public partial class DoorController : BaseGridObjectController
         Opened
     }
 
-    public enum Color
+    public enum Color : int
     {
         Blue,
         Green,
@@ -26,6 +26,11 @@ public partial class DoorController : BaseGridObjectController
     public Color CurrentColor = Color.Blue;
 
     public DungeonRoomConnection RoomConnection = null;
+
+    public void Unlock()
+    {
+        CurrentState = State.Opened;        
+    }
 
     public override void ProcessAndUpdate(double delta)
     {

@@ -1,4 +1,6 @@
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using Godot;
 
 public partial class RockfordController : BaseGridObjectController
@@ -31,6 +33,8 @@ public partial class RockfordController : BaseGridObjectController
     private bool firePressed = false;
 
     public State rockfordState = State.Alive;
+
+    private List<DoorController.Color> collectedKeys = [];
 
     private bool CanRockfordPushRock(BaseGridObjectController rockGridObject, MoveDirection rockfordDirection)
     {
@@ -85,6 +89,15 @@ public partial class RockfordController : BaseGridObjectController
                         DoorController doorController = (DoorController)gridItem;
                         if (doorController.CurrentState != DoorController.State.Locked)
                             mainController.ChangeRoom(doorController.RoomConnection);
+                        else
+                        {
+                            bool hasKey = collectedKeys.Contains((DoorController.Color)doorController.RoomConnection.UnlockLevelNeeded);
+                            if (hasKey)
+                            {
+                                doorController.Unlock();
+                                mainController.ChangeRoom(doorController.RoomConnection);
+                            }
+                        }
 
                         return false;
                     }
@@ -95,6 +108,9 @@ public partial class RockfordController : BaseGridObjectController
 
                 case ItemType.Key:
                     {
+                        KeyController keyController = (KeyController)gridItem;
+                        collectedKeys.Add(keyController.keyColor);
+
                         mainController.RemoveGridItem(gridItem.GridPosition);
                         mainController.PlayAudio("KeyAudio");
                         return true;
@@ -179,7 +195,7 @@ public partial class RockfordController : BaseGridObjectController
             delayTime = 0;
 
             ComputeRockfordPosition(delta, moveDirection);
-            (NodeObject as Rockford).PlayAnimation(moveDirection);
+            // (NodeObject as Rockford).PlayAnimation(moveDirection);
 
             return true;
         }
