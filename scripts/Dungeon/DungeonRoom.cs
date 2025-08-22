@@ -5,7 +5,7 @@ using System.Linq;
 using Godot;
 using ProceduralDungeon.Level;
 
-public class DungeonRoom(int index, int widthSize, int heightSize)
+public class DungeonRoom(int index, int widthSize, int heightSize, bool spawnTestLevel = false)
 {
     public enum Connection : int
     {
@@ -19,6 +19,8 @@ public class DungeonRoom(int index, int widthSize, int heightSize)
     private int index = index;
     private readonly int widthSize = widthSize;
     private readonly int heightSize = heightSize;
+
+    private readonly bool spawnTestLevel = spawnTestLevel;
 
     private Main mainController = null;
     private List<BaseGridObjectController> roomMapObjects = null;
@@ -40,16 +42,40 @@ public class DungeonRoom(int index, int widthSize, int heightSize)
     public int WidthSize { get { return widthSize; } }
     public int HeightSize { get { return heightSize; } }
 
-    public void Activate(Main mainController)
+    public void Activate(Main mainController, Connection connectionSide)
     {
         this.mainController = mainController;
 
-        // SpawnTestLevel(new(1, 1));
-        SpawnLevelObjectsAndTiles(new(1, 1));
-        if (rockfordObject != null)
-            SpawnRockford(rockfordObject.GridPosition);
+        if (spawnTestLevel)
+            SpawnTestLevel(new(1, 1));
         else
-            SpawnRockford(new(1, 1));
+        {
+            SpawnLevelObjectsAndTiles(new(1, 1));
+            if (rockfordObject != null)
+                SpawnRockford(rockfordObject.GridPosition);
+            else
+            {
+                Vector2I rockfordSpawPosition = new(1, 1);
+                if (connectionSide == Connection.Up)
+                {
+                    rockfordSpawPosition = new(RoomConnectionPositions[(int)Connection.Down], HeightSize - 2);
+                }
+                else if (connectionSide == Connection.Down)
+                {
+                    rockfordSpawPosition = new(RoomConnectionPositions[(int)Connection.Up], 1);
+                }
+                else if (connectionSide == Connection.Left)
+                {
+                    rockfordSpawPosition = new(WidthSize - 2, RoomConnectionPositions[(int)Connection.Right]);
+                }
+                else if (connectionSide == Connection.Right)
+                {
+                    rockfordSpawPosition = new(1, RoomConnectionPositions[(int)Connection.Left]);
+                }
+
+                SpawnRockford(rockfordSpawPosition);
+            }
+        }
     }
 
     public void Deactivate()
@@ -269,8 +295,28 @@ public class DungeonRoom(int index, int widthSize, int heightSize)
 
         void spawnDoor(int x, int y)
         {
-            RemoveGridItem(new(x, y));
-            AddGridItem<Door, DoorController>(PackedSceneManager.DoorScene, ItemType.Door, new(x * Global.SPRITE_WIDTH, y * Global.SPRITE_HEIGHT), new(x, y));
+            DoorController.Color[] doors = [DoorController.Color.Blue, DoorController.Color.Green, DoorController.Color.Red, DoorController.Color.Silver, DoorController.Color.Yellow];
+
+            for (int i = 0; i < doors.Length; i++)
+            {
+                RemoveGridItem(new(x + i, y));
+
+                var doorController = AddGridItem<Door, DoorController>(PackedSceneManager.DoorScene, ItemType.Door, new((x + i) * Global.SPRITE_WIDTH, y * Global.SPRITE_HEIGHT), new(x + i, y));
+                ((DoorController)doorController).CurrentColor = doors[i];
+            }
+        }
+
+        void spawnKeys(int x, int y)
+        {
+            DoorController.Color[] doors = [DoorController.Color.Blue, DoorController.Color.Green, DoorController.Color.Red, DoorController.Color.Silver, DoorController.Color.Yellow];
+
+            for (int i = 0; i < doors.Length; i++)
+            {
+                RemoveGridItem(new(x + i, y));
+
+                var keyController = AddGridItem<Key, KeyController>(PackedSceneManager.KeyScene, ItemType.Key, new((x + i) * Global.SPRITE_WIDTH, y * Global.SPRITE_HEIGHT), new(x + i, y));
+                ((KeyController)keyController).SetKeyColor(doors[i]);
+            }
         }
 
         InitilizeLevelGrid();
@@ -280,7 +326,10 @@ public class DungeonRoom(int index, int widthSize, int heightSize)
         spawnRocks();
         spawnDiamonds();
         spawnDoor(10, 1);
+        spawnKeys(10, 2);
         // spawnAmoeba(1, 2);
+
+        SpawnRockford(rockfordPosition);
     }
 
     private void SpawnLevelObjectsAndTiles(Vector2I rockfordPosition)
@@ -371,6 +420,8 @@ public class DungeonRoom(int index, int widthSize, int heightSize)
         DoorController doorObject = (DoorController)AddGridItem<Door, DoorController>(PackedSceneManager.DoorScene, ItemType.Door, new(doorPosition.X * Global.SPRITE_WIDTH, doorPosition.Y * Global.SPRITE_HEIGHT), new(doorPosition.X, doorPosition.Y));
 
         doorObject.RoomConnection = roomConnection;
+        doorObject.ConnectionSide = connection;
+
         if (roomConnection.IsLocked)
             doorObject.CurrentColor = (DoorController.Color)roomConnection.UnlockLevelNeeded;
         else

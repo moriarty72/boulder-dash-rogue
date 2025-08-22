@@ -19,6 +19,9 @@ public partial class Main : Node
     */
 
     [Export]
+    public bool UseTestLevel = false;
+
+    [Export]
     public double disableInputDelay = 1.0;
 
     [Export]
@@ -88,6 +91,7 @@ public partial class Main : Node
     private DungeonLevel dungeonLevel;
     private DungeonRoom dungeonRoom;
     private DungeonRoomConnection roomConnection;
+    private DungeonRoom.Connection rommConnectionSide;
     private int playerKeyLevel = 0;
 
     // public DungeonRoom CurrentRoom { get { return dungeonRoom; } }
@@ -98,16 +102,8 @@ public partial class Main : Node
 
     private void InitTestLevel()
     {
-        /*
-        InitializeDungeon();
-        InitializeCamera();
-        // SpawnTestLevel(rockfordSpawnPosition);
-
-        SpawnRockford(rockfordSpawnPosition);
-        */
-
-        dungeonRoom = new DungeonRoom(0, testLevelGridSize.X, testLevelGridSize.Y);
-        dungeonRoom.Activate(this);
+        dungeonRoom = new DungeonRoom(0, testLevelGridSize.X, testLevelGridSize.Y, true);
+        dungeonRoom.Activate(this, DungeonRoom.Connection.Max);
     }
 
     private void InitializeDungeon()
@@ -116,7 +112,7 @@ public partial class Main : Node
         dungeonLevel.Build();
 
         dungeonRoom = dungeonLevel.StartingRoom;
-        dungeonRoom.Activate(this);
+        dungeonRoom.Activate(this, DungeonRoom.Connection.Max);
     }
 
     private void InitializeCamera()
@@ -303,8 +299,11 @@ public partial class Main : Node
             case GameState.gsInitialize:
                 {
                     gameState = GameState.gsPlay;
-                    // InitTestLevel();
-                    InitializeDungeon();
+                    if (UseTestLevel)
+                        InitTestLevel();
+                    else
+                        InitializeDungeon();
+
                     break;
                 }
 
@@ -316,7 +315,7 @@ public partial class Main : Node
 
             case GameState.gsChangeRoom:
                 {
-                    dungeonRoom.Activate(this);
+                    dungeonRoom.Activate(this, rommConnectionSide);
 
                     gameState = GameState.gsPlay;
                     break;
@@ -434,13 +433,15 @@ public partial class Main : Node
         return dungeonRoom.GetRockfordPosition();
     }
 
-    public void ChangeRoom(DungeonRoomConnection dungeonRoomConnection)
+    public void ChangeRoom(DungeonRoomConnection dungeonRoomConnection, DungeonRoom.Connection connectionSide)
     {
         dungeonRoom.Deactivate();
 
         gameState = GameState.gsChangeRoom;
-        
+
         roomConnection = dungeonRoomConnection;
+        rommConnectionSide = connectionSide;
+
         dungeonRoom = dungeonRoomConnection.DestinationRoom;
     }
     #endregion

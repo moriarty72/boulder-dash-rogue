@@ -88,14 +88,14 @@ public partial class RockfordController : BaseGridObjectController
                     {
                         DoorController doorController = (DoorController)gridItem;
                         if (doorController.CurrentState != DoorController.State.Locked)
-                            mainController.ChangeRoom(doorController.RoomConnection);
+                            mainController.ChangeRoom(doorController.RoomConnection, doorController.ConnectionSide);
                         else
                         {
                             bool hasKey = collectedKeys.Contains((DoorController.Color)doorController.RoomConnection.UnlockLevelNeeded);
                             if (hasKey)
                             {
                                 doorController.Unlock();
-                                mainController.ChangeRoom(doorController.RoomConnection);
+                                mainController.ChangeRoom(doorController.RoomConnection, doorController.ConnectionSide);
                             }
                         }
 

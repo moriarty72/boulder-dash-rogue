@@ -26,10 +26,11 @@ public partial class DoorController : BaseGridObjectController
     public Color CurrentColor = Color.Blue;
 
     public DungeonRoomConnection RoomConnection = null;
+    public DungeonRoom.Connection ConnectionSide;
 
     public void Unlock()
     {
-        CurrentState = State.Opened;        
+        CurrentState = State.Opened;
     }
 
     public override void ProcessAndUpdate(double delta)

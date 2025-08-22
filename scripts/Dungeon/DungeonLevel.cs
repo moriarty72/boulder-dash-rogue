@@ -148,7 +148,7 @@ namespace ProceduralDungeon.Level
             DungeonRoom startRoom = new(0, roomWidthSize, roomHeightSize)
             {
                 Position = new Coordinate(width >> 1, height >> 1),
-                Weight = GetRoomWeight()
+                Weight = GetRoomWeight(),
             };
 
             rooms.Add(startRoom);
