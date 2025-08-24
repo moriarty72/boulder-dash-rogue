@@ -1,4 +1,4 @@
-[gd_scene load_steps=10 format=3 uid="uid://b70onn202o232"]
+[gd_scene load_steps=11 format=3 uid="uid://b70onn202o232"]
 
 [ext_resource type="Script" uid="uid://bn5mtotml51bv" path="res://scripts/Main.cs" id="1_o5qli"]
 [ext_resource type="AudioStream" uid="uid://0fodhcl5ss8k" path="res://assets/audio/exploded.ogg" id="2_0wfyh"]
@@ -8,6 +8,7 @@
 [ext_resource type="AudioStream" uid="uid://diwouj8owfe7v" path="res://assets/audio/diamond_1.ogg" id="6_tefeu"]
 [ext_resource type="AudioStream" uid="uid://duafy5u47bqp6" path="res://assets/audio/amoeba.ogg" id="7_o6xl0"]
 [ext_resource type="AudioStream" uid="uid://doyhd7cqqw5yp" path="res://assets/audio/crack.ogg" id="8_tipki"]
+[ext_resource type="AudioStream" uid="uid://li3wgfr81wwi" path="res://assets/audio/walk_e.ogg" id="9_85g3d"]
 
 [sub_resource type="CanvasItemMaterial" id="CanvasItemMaterial_o5qli"]
 
@@ -16,11 +17,11 @@ material = SubResource("CanvasItemMaterial_o5qli")
 script = ExtResource("1_o5qli")
 disableInputDelay = 0.15
 testLevelGridSize = Vector2i(40, 24)
-roomGridWidth = 40
-roomGridHeight = 24
+roomGridWidth = 10
+roomGridHeight = 10
 roomCount = 10
 seed = 1972
-deepLevel = 3
+deepLevel = 5
 minRoomWidthSize = 20
 minRoomHeightSize = 12
 maxRoomWidthSize = 20
@@ -58,3 +59,6 @@ parameters/looping = true
 
 [node name="KeyAudio" type="AudioStreamPlayer2D" parent="."]
 stream = ExtResource("8_tipki")
+
+[node name="RockfordWalkAudio" type="AudioStreamPlayer2D" parent="."]
+stream = ExtResource("9_85g3d")

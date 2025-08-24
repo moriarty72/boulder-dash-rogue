@@ -64,7 +64,7 @@ namespace ProceduralDungeon.Level
             int roomOffset = 0;
             if (roomWeightCount.Count > 1)
             {
-                for(int w = 0; w < roomWeightCount.Count; w++)
+                for(int w = 0; w < roomWeightCount.Count - 1; w++)
                 {
                     int roomCount = rooms.Where(r => r.Weight == w).Count();
                     int roomKeyIndex = rnd.Next(roomCount);
@@ -117,27 +117,27 @@ namespace ProceduralDungeon.Level
                     DungeonRoom room = roomsMap[x, y];
                     if (room == null)
                     {
-                        line1 = line1 + " . ";
-                        line2 = line2 + "   ";
+                        line1 += " . ";
+                        line2 += "   ";
                     }
                     else
                     {
                         if (room.RoomConnections[(int)DungeonRoom.Connection.Right] != null)
-                            line1 = line1 + string.Format("{0, 2}-", room.Index);
+                            line1 += string.Format("{0, 2}-", room.Weight);
                         else
-                            line1 = line1 + string.Format("{0, 2} ", room.Index);
+                            line1 += string.Format("{0, 2} ", room.Weight);
 
                         if (room.RoomConnections[(int)DungeonRoom.Connection.Down] != null)
-                            line2 = line2 + " | ";
+                            line2 += " | ";
                         else
-                            line2 = line2 + "   ";
+                            line2 += "   ";
                     }
                 }
                 map.Add(line1);
                 map.Add(line2);
             }
 
-            File.WriteAllLines(string.Format("c:\\temp\\Dungeon.txt", seed), map.ToArray());
+            File.WriteAllLines(string.Format("c:\\temp\\Dungeon-boulder.txt", seed), map.ToArray());
         }
 
         private void InitializeStartRoom()

@@ -75,6 +75,16 @@ public class BaseGridObjectController
         }
     }
 
+    public void SetGridPosition(Vector2I gridPosition)
+    {
+        GridPosition = gridPosition;
+        PrevGridPosition = GridPosition;
+        
+        WorldPosition = new(GridPosition.X * Global.SPRITE_WIDTH, GridPosition.Y * Global.SPRITE_HEIGHT);
+        
+        NodeObject.GlobalPosition = WorldPosition;
+    }
+
     public void RemoveNodeFromScene()
     {
         NodeObject?.QueueFree();

@@ -12,7 +12,8 @@ public partial class Door : Area2D
         animatedSprite2D = GetNode<AnimatedSprite2D>("AnimatedSprite2D");
     }
 
-    public void SetColorAndState(string color, int isOpen) {
+    public void SetColorAndState(string color, int isOpen)
+    {
         animatedSprite2D.Animation = color;
         animatedSprite2D.Frame = isOpen;
     }

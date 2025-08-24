@@ -24,7 +24,7 @@ public class DungeonRoom(int index, int widthSize, int heightSize, bool spawnTes
 
     private Main mainController = null;
     private List<BaseGridObjectController> roomMapObjects = null;
-    private BaseGridObjectController rockfordObject;
+    private static BaseGridObjectController rockfordObject;
 
     private int weight = 0;
     private Coordinate position;
@@ -51,8 +51,8 @@ public class DungeonRoom(int index, int widthSize, int heightSize, bool spawnTes
         else
         {
             SpawnLevelObjectsAndTiles(new(1, 1));
-            if (rockfordObject != null)
-                SpawnRockford(rockfordObject.GridPosition);
+            if (rockfordObject == null)
+                SpawnRockford(new(1, 1));
             else
             {
                 Vector2I rockfordSpawPosition = new(1, 1);
@@ -137,10 +137,30 @@ public class DungeonRoom(int index, int widthSize, int heightSize, bool spawnTes
         }
     }
 
+    private void UpdateGridItem(Vector2I position, BaseGridObjectController bgo)
+    {
+        RemoveGridItem(new(position.X, position.Y));
+
+        int index = GetGridIndex(position.X, position.Y);
+        roomMapObjects[index] = bgo;
+    }
+
+    private void SetGridItem(Vector2I position, BaseGridObjectController bgo)
+    {
+        int index = GetGridIndex(position.X, position.Y);
+        roomMapObjects[index] = bgo;
+    }
+
     public void RemoveGridItem(Vector2I position)
     {
         int index = GetGridIndex(position.X, position.Y);
         roomMapObjects[index]?.Dead();
+    }
+
+    public void KillGridItem(Vector2I position)
+    {
+        int index = GetGridIndex(position.X, position.Y);
+        roomMapObjects[index] = null;
     }
 
     public BaseGridObjectController GetGridItem(int x, int y)
@@ -331,7 +351,6 @@ public class DungeonRoom(int index, int widthSize, int heightSize, bool spawnTes
 
         SpawnRockford(rockfordPosition);
     }
-
     private void SpawnLevelObjectsAndTiles(Vector2I rockfordPosition)
     {
         if (roomMapObjects == null)
@@ -413,7 +432,6 @@ public class DungeonRoom(int index, int widthSize, int heightSize, bool spawnTes
             roomMapObjects.ForEach(obj => obj?.Respawn());
         }
     }
-
     private void SpawnDoor(DungeonRoomConnection roomConnection, DungeonRoom.Connection connection, Vector2I position)
     {
         Vector2I doorPosition = position;
@@ -431,6 +449,13 @@ public class DungeonRoom(int index, int widthSize, int heightSize, bool spawnTes
         }
     }
 
+    private void RespawnRockford(Vector2I rockfordSpawPosition)
+    {
+        rockfordObject.Respawn();
+        rockfordObject.SetGridPosition(rockfordSpawPosition);
+
+        UpdateGridItem(rockfordSpawPosition, rockfordObject);
+    }
 
     public void ProcessGameObjects(double delta)
     {

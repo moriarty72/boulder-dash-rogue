@@ -14,6 +14,7 @@ public partial class DoorController : BaseGridObjectController
 
     public enum Color : int
     {
+        None,
         Blue,
         Green,
         Red,

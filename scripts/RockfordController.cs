@@ -34,8 +34,6 @@ public partial class RockfordController : BaseGridObjectController
 
     public State rockfordState = State.Alive;
 
-    private List<DoorController.Color> collectedKeys = [];
-
     private bool CanRockfordPushRock(BaseGridObjectController rockGridObject, MoveDirection rockfordDirection)
     {
         if ((rockfordDirection == MoveDirection.left) || (rockfordDirection == MoveDirection.right))
@@ -91,7 +89,7 @@ public partial class RockfordController : BaseGridObjectController
                             mainController.ChangeRoom(doorController.RoomConnection, doorController.ConnectionSide);
                         else
                         {
-                            bool hasKey = collectedKeys.Contains((DoorController.Color)doorController.RoomConnection.UnlockLevelNeeded);
+                            bool hasKey = RockfordStatusBag.CollectedKeys.Contains((DoorController.Color)doorController.RoomConnection.UnlockLevelNeeded);
                             if (hasKey)
                             {
                                 doorController.Unlock();
@@ -109,7 +107,7 @@ public partial class RockfordController : BaseGridObjectController
                 case ItemType.Key:
                     {
                         KeyController keyController = (KeyController)gridItem;
-                        collectedKeys.Add(keyController.keyColor);
+                        RockfordStatusBag.CollectedKeys.Add(keyController.keyColor);
 
                         mainController.RemoveGridItem(gridItem.GridPosition);
                         mainController.PlayAudio("KeyAudio");
@@ -202,7 +200,6 @@ public partial class RockfordController : BaseGridObjectController
 
         switch (CurrentState)
         {
-            case State.Alive:
             case State.Dead:
                 {
                     break;
@@ -220,6 +217,7 @@ public partial class RockfordController : BaseGridObjectController
                     break;
                 }
 
+            case State.Alive:
             case State.Stand:
                 {
                     (NodeObject as Rockford).PlayAnimation(moveDirection);
@@ -269,7 +267,13 @@ public partial class RockfordController : BaseGridObjectController
 
         ProcessUserInput(delta);
         if (UpdateNodeObjectPosition())
-            (NodeObject as Rockford).PlayAudio();
+            mainController.PlayAudio("RockfordWalkAudio");
+    }
+
+    public override void Respawn()
+    {
+        base.Respawn();
+        CurrentState = State.Alive;
     }
 
     public override void Dead()
