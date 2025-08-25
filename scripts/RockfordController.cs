@@ -79,6 +79,8 @@ public partial class RockfordController : BaseGridObjectController
                     {
                         mainController.RemoveGridItem(gridItem.GridPosition);
                         mainController.PlayAudio("DiamondCollectAudio");
+
+                        RockfordStatusBag.Score += 10;
                         return true;
                     }
 

@@ -96,6 +96,8 @@ public partial class Main : Node
 
     // public DungeonRoom CurrentRoom { get { return dungeonRoom; } }
 
+    private Timer gameOverTimer;
+
     public override void _Ready()
     {
     }
@@ -115,135 +117,11 @@ public partial class Main : Node
         dungeonRoom.Activate(this, DungeonRoom.Connection.Max);
     }
 
-    private void InitializeCamera()
+    private void UpdateHUD()
     {
-        Camera2D camera2D = GetNode<Camera2D>("Camera2D");
-
-        camera2D.LimitTop = camera2D.LimitLeft = 0;
-        camera2D.LimitRight = dungeonRoom.WidthSize * Global.SPRITE_WIDTH;
-        camera2D.LimitBottom = dungeonRoom.HeightSize * Global.SPRITE_HEIGHT;
+        Hud hud = GetNode<CanvasLayer>("HUD") as Hud;
+        hud.Update();
     }
-
-    #region Dungeon Management
-
-    /*
-        private void SpawnRoomTiles()
-        {
-            if (dungeonRoom.RoomState.HasState())
-            {
-                List<BaseGridObjectController> roomGridObjects = dungeonRoom.RoomState.RetrieveState();
-                roomGridObjects.ForEach(bgo =>
-                {
-                    if (bgo.Type != ItemType.Rockford)
-                        RespawnGridItem(bgo);
-                    else
-                        AddEmptyGridItem(bgo.WorldPosition, bgo.GridPosition);
-                });
-            }
-            else
-            {
-                // instantiate doors...
-                DungeonRoomConnection roomUpConnection = dungeonRoom.RoomConnections[(int)DungeonRoom.Connection.Up];
-                DungeonRoomConnection roomRightConnection = dungeonRoom.RoomConnections[(int)DungeonRoom.Connection.Right];
-                DungeonRoomConnection roomBottomConnection = dungeonRoom.RoomConnections[(int)DungeonRoom.Connection.Down];
-                DungeonRoomConnection roomLeftConnection = dungeonRoom.RoomConnections[(int)DungeonRoom.Connection.Left];
-
-                for (int y = 0; y < dungeonRoom.HeightSize; y++)
-                {
-                    for (int x = 0; x < dungeonRoom.WidthSize; x++)
-                    {
-                        Vector2I tilePosition = new(x, y);
-
-                        if ((roomUpConnection != null) && (y == 0) && (x == dungeonRoom.RoomConnectionPositions[(int)DungeonRoom.Connection.Up]))
-                        {
-                            SpawnDoor(roomUpConnection, DungeonRoom.Connection.Up, tilePosition);
-                            continue;
-                        }
-
-                        if ((roomRightConnection != null) && (x == dungeonRoom.WidthSize - 1) && (y == dungeonRoom.RoomConnectionPositions[(int)DungeonRoom.Connection.Right]))
-                        {
-                            SpawnDoor(roomRightConnection, DungeonRoom.Connection.Right, tilePosition);
-                            continue;
-                        }
-
-                        if ((roomBottomConnection != null) && (y == dungeonRoom.HeightSize - 1) && (x == dungeonRoom.RoomConnectionPositions[(int)DungeonRoom.Connection.Down]))
-                        {
-                            SpawnDoor(roomBottomConnection, DungeonRoom.Connection.Down, tilePosition);
-                            continue;
-                        }
-
-                        if ((roomLeftConnection != null) && (x == 0) && (y == dungeonRoom.RoomConnectionPositions[(int)DungeonRoom.Connection.Left]))
-                        {
-                            SpawnDoor(roomLeftConnection, DungeonRoom.Connection.Left, tilePosition);
-                            continue;
-                        }
-
-                        bool isCorner = ((x == 0) && (y == 0)) || ((x == 0) && (y == (dungeonRoom.HeightSize - 1))) || ((x == (dungeonRoom.WidthSize - 1)) && (y == 0)) || ((x == (dungeonRoom.WidthSize - 1)) && (y == (dungeonRoom.HeightSize - 1)));
-                        bool isSide = ((x > 0) && (x < dungeonRoom.WidthSize) && ((y == 0) || (y == (dungeonRoom.HeightSize - 1)))) || ((y > 0) && (y < dungeonRoom.HeightSize) && ((x == 0) || (x == (dungeonRoom.WidthSize - 1))));
-
-                        if (isCorner || isSide)
-                        {
-                            AddGridItem<MetalWall, BaseGridObjectController>(PackedSceneManager.MetalWallScene, ItemType.MetalWall, new(x * SPRITE_WIDTH, y * SPRITE_HEIGHT), new(x, y));
-                        }
-                        else
-                        {
-                            AddGridItem<Mud1, BaseGridObjectController>(PackedSceneManager.MudScene, ItemType.Mud, new(x * SPRITE_WIDTH, y * SPRITE_HEIGHT), new(x, y));
-                        }
-                    }
-                }
-
-                // spanw keys
-                dungeonRoom.Items.ForEach(item =>
-                {
-                    try
-                    {
-                        if (item.GetType() == typeof(DungeonItemKey))
-                        {
-                            DungeonItemKey dungeonItemKey = (DungeonItemKey)item;
-
-                            RemoveGridItem(dungeonItemKey.Position.ToVector2I());
-                            KeyController keyObject = (KeyController)AddGridItem<Key, KeyController>(PackedSceneManager.KeyScene, ItemType.Key, new(dungeonItemKey.Position.X * SPRITE_WIDTH, dungeonItemKey.Position.Y * SPRITE_HEIGHT), dungeonItemKey.Position.ToVector2I());
-
-                            keyObject.SetKeyColor((DoorController.Color)dungeonItemKey.KeyLevel);
-                        }
-                    }
-                    catch (Exception e)
-                    {
-                        GD.Print("DungeonMaster.RenderRoomItems: exception " + e.Message);
-                    }
-                });
-                dungeonRoom.RoomState.SaveState(levelGrid);
-            }
-        }
-
-    private void SpawnDoor(DungeonRoomConnection roomConnection, DungeonRoom.Connection connection, Vector2I position)
-    {
-        Vector2I doorPosition = position;
-        DoorController doorObject = (DoorController)AddGridItem<Door, DoorController>(PackedSceneManager.DoorScene, ItemType.Door, new(doorPosition.X * SPRITE_WIDTH, doorPosition.Y * SPRITE_HEIGHT), new(doorPosition.X, doorPosition.Y));
-
-        doorObject.RoomConnection = roomConnection;
-        if (roomConnection.IsLocked)
-            doorObject.CurrentColor = (DoorController.Color)roomConnection.UnlockLevelNeeded;
-        else
-        {
-            doorObject.CurrentColor = DoorController.Color.Brown;
-            doorObject.CurrentState = DoorController.State.Opened;
-        }
-    }
-
-    public void ChangeRoom(DungeonRoomConnection dungeonRoomConnection)
-    {
-        // save current room state
-        dungeonRoom.RoomState.SaveState(levelGrid);
-
-        gameState = GameState.gsChangeRoom;
-        dungeonRoom = dungeonRoomConnection.DestinationRoom;
-
-        rockfordSpawnPosition = new(1, 1);
-    }
-    */
-
-    #endregion
 
     public UserEvent GetInputEvent(double delta)
     {
@@ -259,7 +137,7 @@ public partial class Main : Node
 
     public void AttachCameraToEntity(Node2D entity)
     {
-        Camera2D camera2D = GetNode<Camera2D>("Camera2D");
+        Camera2D camera2D = GetNode<Camera2D>("Game/Camera2D");
 
         camera2D.LimitTop = camera2D.LimitLeft = 0;
         camera2D.LimitRight = dungeonRoom.WidthSize * Global.SPRITE_WIDTH;
@@ -274,12 +152,12 @@ public partial class Main : Node
 
     public void PlayAudio(string audioName)
     {
-        GetNode<AudioStreamPlayer2D>(audioName)?.Play();
+        GetNode<AudioStreamPlayer2D>("Game/" + audioName)?.Play();
     }
 
     public void StopAudio(string audioName)
     {
-        GetNode<AudioStreamPlayer2D>(audioName)?.Stop();
+        GetNode<AudioStreamPlayer2D>("Game/" + audioName)?.Stop();
     }
 
     public void SpawnExplosion(Vector2I position, bool isRockfordDead)
@@ -289,7 +167,7 @@ public partial class Main : Node
         if (isRockfordDead)
             gameState = GameState.gsRockfordDead;
 
-        GetNode<AudioStreamPlayer2D>("ExplosionAudio").Play();
+        GetNode<AudioStreamPlayer2D>("Game/ExplosionAudio").Play();
     }
 
     private void GameLoopManagement(double delta)
@@ -310,6 +188,7 @@ public partial class Main : Node
             case GameState.gsPlay:
                 {
                     dungeonRoom.ProcessGameObjects(delta);
+                    UpdateHUD();
                     break;
                 }
 
@@ -329,9 +208,20 @@ public partial class Main : Node
 
             case GameState.gsGameOver:
                 {
-                    UserEvent userEvent = GetInputEvent(delta);
-                    if (userEvent == UserEvent.ueFire)
-                        gameState = GameState.gsInitialize;
+                    if (gameOverTimer == null)
+                        gameOverTimer = new Timer(0);
+
+                    if (gameOverTimer.IsElapsed(delta))
+                    {
+                        UserEvent userEvent = GetInputEvent(delta);
+                        if (userEvent == UserEvent.ueFire)
+                        {
+                            dungeonRoom.Shutdown();
+                            dungeonLevel = null;
+
+                            gameState = GameState.gsInitialize;
+                        }
+                    }
 
                     dungeonRoom.ProcessGameObjects(delta);
 

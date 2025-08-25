@@ -58,13 +58,18 @@ namespace ProceduralDungeon.Level
             DumpFile();
         }
 
+        public void Destroy()
+        {
+            rooms.ForEach((DungeonRoom room) => room.Shutdown());
+        }
+
         private void InitializeRoomsItems()
         {
             // place unlock keys...
             int roomOffset = 0;
             if (roomWeightCount.Count > 1)
             {
-                for(int w = 0; w < roomWeightCount.Count - 1; w++)
+                for (int w = 0; w < roomWeightCount.Count - 1; w++)
                 {
                     int roomCount = rooms.Where(r => r.Weight == w).Count();
                     int roomKeyIndex = rnd.Next(roomCount);

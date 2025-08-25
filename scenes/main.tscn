@@ -1,4 +1,4 @@
-[gd_scene load_steps=11 format=3 uid="uid://b70onn202o232"]
+[gd_scene load_steps=13 format=3 uid="uid://b70onn202o232"]
 
 [ext_resource type="Script" uid="uid://bn5mtotml51bv" path="res://scripts/Main.cs" id="1_o5qli"]
 [ext_resource type="AudioStream" uid="uid://0fodhcl5ss8k" path="res://assets/audio/exploded.ogg" id="2_0wfyh"]
@@ -9,6 +9,8 @@
 [ext_resource type="AudioStream" uid="uid://duafy5u47bqp6" path="res://assets/audio/amoeba.ogg" id="7_o6xl0"]
 [ext_resource type="AudioStream" uid="uid://doyhd7cqqw5yp" path="res://assets/audio/crack.ogg" id="8_tipki"]
 [ext_resource type="AudioStream" uid="uid://li3wgfr81wwi" path="res://assets/audio/walk_e.ogg" id="9_85g3d"]
+[ext_resource type="FontFile" uid="uid://dcq8iph28bvxe" path="res://font/Boulder Dash 6128.ttf" id="10_choun"]
+[ext_resource type="Script" uid="uid://dyowijri5e0sm" path="res://scripts/Hud.cs" id="10_ya4ey"]
 
 [sub_resource type="CanvasItemMaterial" id="CanvasItemMaterial_o5qli"]
 
@@ -20,14 +22,16 @@ testLevelGridSize = Vector2i(40, 24)
 roomGridWidth = 10
 roomGridHeight = 10
 roomCount = 10
-seed = 1972
+seed = 2014
 deepLevel = 5
 minRoomWidthSize = 20
 minRoomHeightSize = 12
-maxRoomWidthSize = 20
-maxRoomHeightSize = 12
+maxRoomWidthSize = 40
+maxRoomHeightSize = 24
 
-[node name="Camera2D" type="Camera2D" parent="."]
+[node name="Game" type="Node2D" parent="."]
+
+[node name="Camera2D" type="Camera2D" parent="Game"]
 limit_left = 0
 limit_top = 0
 limit_smoothed = true
@@ -38,27 +42,40 @@ drag_vertical_enabled = true
 drag_horizontal_offset = 1.0
 drag_vertical_offset = 1.0
 
-[node name="ExplosionAudio" type="AudioStreamPlayer2D" parent="."]
+[node name="ExplosionAudio" type="AudioStreamPlayer2D" parent="Game"]
 stream = ExtResource("2_0wfyh")
 
-[node name="DiamondCollectAudio" type="AudioStreamPlayer2D" parent="."]
+[node name="DiamondCollectAudio" type="AudioStreamPlayer2D" parent="Game"]
 stream = ExtResource("3_sugp2")
 
-[node name="StonePushAudio" type="AudioStreamPlayer2D" parent="."]
+[node name="StonePushAudio" type="AudioStreamPlayer2D" parent="Game"]
 stream = ExtResource("4_tbgi4")
 
-[node name="StoneCollisionAudio" type="AudioStreamPlayer2D" parent="."]
+[node name="StoneCollisionAudio" type="AudioStreamPlayer2D" parent="Game"]
 stream = ExtResource("4_jyhfs")
 
-[node name="DiamondCollisionAudio" type="AudioStreamPlayer2D" parent="."]
+[node name="DiamondCollisionAudio" type="AudioStreamPlayer2D" parent="Game"]
 stream = ExtResource("6_tefeu")
 
-[node name="AmoebaAudio" type="AudioStreamPlayer2D" parent="."]
+[node name="AmoebaAudio" type="AudioStreamPlayer2D" parent="Game"]
 stream = ExtResource("7_o6xl0")
 parameters/looping = true
 
-[node name="KeyAudio" type="AudioStreamPlayer2D" parent="."]
+[node name="KeyAudio" type="AudioStreamPlayer2D" parent="Game"]
 stream = ExtResource("8_tipki")
 
-[node name="RockfordWalkAudio" type="AudioStreamPlayer2D" parent="."]
+[node name="RockfordWalkAudio" type="AudioStreamPlayer2D" parent="Game"]
 stream = ExtResource("9_85g3d")
+
+[node name="HUD" type="CanvasLayer" parent="."]
+script = ExtResource("10_ya4ey")
+
+[node name="ScoreLabel" type="Label" parent="HUD"]
+offset_left = 10.0
+offset_right = 354.0
+offset_bottom = 51.0
+theme_override_colors/font_color = Color(1, 1, 0.988235, 1)
+theme_override_colors/font_shadow_color = Color(0.29219, 0.29219, 0.29219, 1)
+theme_override_fonts/font = ExtResource("10_choun")
+theme_override_font_sizes/font_size = 64
+text = "SCORE:"

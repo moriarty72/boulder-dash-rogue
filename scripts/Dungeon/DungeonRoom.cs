@@ -22,6 +22,8 @@ public class DungeonRoom(int index, int widthSize, int heightSize, bool spawnTes
 
     private readonly bool spawnTestLevel = spawnTestLevel;
 
+    private Random rnd = new Random(System.Environment.TickCount);
+
     private Main mainController = null;
     private List<BaseGridObjectController> roomMapObjects = null;
     private static BaseGridObjectController rockfordObject;
@@ -356,6 +358,7 @@ public class DungeonRoom(int index, int widthSize, int heightSize, bool spawnTes
         if (roomMapObjects == null)
         {
             InitilizeLevelGrid();
+
             // instantiate doors...
             DungeonRoomConnection roomUpConnection = RoomConnections[(int)DungeonRoom.Connection.Up];
             DungeonRoomConnection roomRightConnection = RoomConnections[(int)DungeonRoom.Connection.Right];
@@ -406,26 +409,45 @@ public class DungeonRoom(int index, int widthSize, int heightSize, bool spawnTes
                 }
             }
 
-            // spanw keys
-            Items.ForEach(item =>
+            void spanwFallingItems<T>(PackedScene itemScene, ItemType itemType, float perc) where T: Node2D
             {
-                try
+                int itemCount = rnd.Next((int)(WidthSize * HeightSize * perc));
+                for (int i = 0; i < itemCount; i++)
                 {
-                    if (item.GetType() == typeof(DungeonItemKey))
+                    Vector2I position = new(rnd.Next(2, WidthSize - 2), rnd.Next(2, HeightSize - 2));
+                    
+                    RemoveGridItem(position);
+                    AddGridItem<T, FallingObjectController>(itemScene, itemType, new(position.X * Global.SPRITE_WIDTH, position.Y * Global.SPRITE_HEIGHT), position);
+                }
+                
+            }
+
+            void spawnItems()
+            {
+                Items.ForEach(item =>
+                {
+                    try
                     {
-                        DungeonItemKey dungeonItemKey = (DungeonItemKey)item;
+                        if (item.GetType() == typeof(DungeonItemKey))
+                        {
+                            DungeonItemKey dungeonItemKey = (DungeonItemKey)item;
 
-                        RemoveGridItem(dungeonItemKey.Position.ToVector2I());
-                        KeyController keyObject = (KeyController)AddGridItem<Key, KeyController>(PackedSceneManager.KeyScene, ItemType.Key, new(dungeonItemKey.Position.X * Global.SPRITE_WIDTH, dungeonItemKey.Position.Y * Global.SPRITE_HEIGHT), dungeonItemKey.Position.ToVector2I());
+                            RemoveGridItem(dungeonItemKey.Position.ToVector2I());
+                            KeyController keyObject = (KeyController)AddGridItem<Key, KeyController>(PackedSceneManager.KeyScene, ItemType.Key, new(dungeonItemKey.Position.X * Global.SPRITE_WIDTH, dungeonItemKey.Position.Y * Global.SPRITE_HEIGHT), dungeonItemKey.Position.ToVector2I());
 
-                        keyObject.SetKeyColor((DoorController.Color)dungeonItemKey.KeyLevel);
+                            keyObject.SetKeyColor((DoorController.Color)dungeonItemKey.KeyLevel);
+                        }
                     }
-                }
-                catch (Exception e)
-                {
-                    GD.Print("DungeonMaster.RenderRoomItems: exception " + e.Message);
-                }
-            });
+                    catch (Exception e)
+                    {
+                        GD.Print("DungeonMaster.RenderRoomItems: exception " + e.Message);
+                    }
+                });
+            }
+
+            spanwFallingItems<Rock>(PackedSceneManager.RockScene, ItemType.Rock, 0.1f);
+            spanwFallingItems<Diamond>(PackedSceneManager.DiamondScene, ItemType.Diamond, 0.1f);
+            spawnItems();
         }
         else
         {
@@ -449,17 +471,23 @@ public class DungeonRoom(int index, int widthSize, int heightSize, bool spawnTes
         }
     }
 
-    private void RespawnRockford(Vector2I rockfordSpawPosition)
+    public void Shutdown()
     {
-        rockfordObject.Respawn();
-        rockfordObject.SetGridPosition(rockfordSpawPosition);
+        if (rockfordObject != null)
+        {
+            rockfordObject.Dead();
+            rockfordObject = null;
+        }
 
-        UpdateGridItem(rockfordSpawPosition, rockfordObject);
+        RemoveAllGridObjects();
     }
 
     public void ProcessGameObjects(double delta)
     {
         for (int i = 0; i < WidthSize * HeightSize; i++)
-            roomMapObjects[i]?.ProcessAndUpdate(delta);
+        {
+            if (roomMapObjects.Count > 0)
+                roomMapObjects[i]?.ProcessAndUpdate(delta);
+        }
     }
 }
