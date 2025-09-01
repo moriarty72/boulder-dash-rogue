@@ -1,0 +1,68 @@
+[gd_scene load_steps=10 format=3 uid="uid://do6g2x3js77v8"]
+
+[ext_resource type="Texture2D" uid="uid://bncb5r1uf0b4s" path="res://assets/rockford-head.png" id="1_4vhi7"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_7ivmc"]
+atlas = ExtResource("1_4vhi7")
+region = Rect2(0, 0, 64, 64)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_jy6ha"]
+atlas = ExtResource("1_4vhi7")
+region = Rect2(64, 0, 64, 64)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_pwggy"]
+atlas = ExtResource("1_4vhi7")
+region = Rect2(128, 0, 64, 64)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_nqwcu"]
+atlas = ExtResource("1_4vhi7")
+region = Rect2(192, 0, 64, 64)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_112d7"]
+atlas = ExtResource("1_4vhi7")
+region = Rect2(256, 0, 64, 64)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_2go4n"]
+atlas = ExtResource("1_4vhi7")
+region = Rect2(320, 0, 64, 64)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_p4vrd"]
+atlas = ExtResource("1_4vhi7")
+region = Rect2(384, 0, 64, 64)
+
+[sub_resource type="SpriteFrames" id="SpriteFrames_hio67"]
+animations = [{
+"frames": [{
+"duration": 0.6,
+"texture": SubResource("AtlasTexture_7ivmc")
+}, {
+"duration": 0.6,
+"texture": SubResource("AtlasTexture_jy6ha")
+}, {
+"duration": 0.6,
+"texture": SubResource("AtlasTexture_pwggy")
+}, {
+"duration": 0.6,
+"texture": SubResource("AtlasTexture_nqwcu")
+}, {
+"duration": 0.6,
+"texture": SubResource("AtlasTexture_112d7")
+}, {
+"duration": 0.6,
+"texture": SubResource("AtlasTexture_2go4n")
+}, {
+"duration": 0.6,
+"texture": SubResource("AtlasTexture_p4vrd")
+}],
+"loop": true,
+"name": &"default",
+"speed": 5.0
+}]
+
+[node name="Rockford-head" type="Node"]
+
+[node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="."]
+position = Vector2(31, 31)
+sprite_frames = SubResource("SpriteFrames_hio67")
+autoplay = "default"
+frame_progress = 0.861405

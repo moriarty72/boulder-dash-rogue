@@ -1,10 +1,12 @@
-[gd_scene load_steps=13 format=3 uid="uid://b70onn202o232"]
+[gd_scene load_steps=25 format=3 uid="uid://b70onn202o232"]
 
 [ext_resource type="Script" uid="uid://bn5mtotml51bv" path="res://scripts/Main.cs" id="1_o5qli"]
 [ext_resource type="AudioStream" uid="uid://0fodhcl5ss8k" path="res://assets/audio/exploded.ogg" id="2_0wfyh"]
+[ext_resource type="Texture2D" uid="uid://dckqh0hymic7l" path="res://assets/title.png" id="2_eb6dy"]
 [ext_resource type="AudioStream" uid="uid://21284lqel317" path="res://assets/audio/diamond_collect.ogg" id="3_sugp2"]
 [ext_resource type="AudioStream" uid="uid://bp656jhjyxpfc" path="res://assets/audio/stone_2.ogg" id="4_jyhfs"]
 [ext_resource type="AudioStream" uid="uid://dssjajw4rwjfa" path="res://assets/audio/stone.ogg" id="4_tbgi4"]
+[ext_resource type="Texture2D" uid="uid://bncb5r1uf0b4s" path="res://assets/rockford-head.png" id="4_trceg"]
 [ext_resource type="AudioStream" uid="uid://diwouj8owfe7v" path="res://assets/audio/diamond_1.ogg" id="6_tefeu"]
 [ext_resource type="AudioStream" uid="uid://duafy5u47bqp6" path="res://assets/audio/amoeba.ogg" id="7_o6xl0"]
 [ext_resource type="AudioStream" uid="uid://doyhd7cqqw5yp" path="res://assets/audio/crack.ogg" id="8_tipki"]
@@ -13,6 +15,70 @@
 [ext_resource type="Script" uid="uid://dyowijri5e0sm" path="res://scripts/Hud.cs" id="10_ya4ey"]
 
 [sub_resource type="CanvasItemMaterial" id="CanvasItemMaterial_o5qli"]
+
+[sub_resource type="LabelSettings" id="LabelSettings_trceg"]
+font_size = 92
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_a8y0u"]
+atlas = ExtResource("4_trceg")
+region = Rect2(0, 0, 64, 64)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_jkv2x"]
+atlas = ExtResource("4_trceg")
+region = Rect2(64, 0, 64, 64)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_jbj1t"]
+atlas = ExtResource("4_trceg")
+region = Rect2(128, 0, 64, 64)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_muem4"]
+atlas = ExtResource("4_trceg")
+region = Rect2(192, 0, 64, 64)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_dp3eg"]
+atlas = ExtResource("4_trceg")
+region = Rect2(256, 0, 64, 64)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_0ld40"]
+atlas = ExtResource("4_trceg")
+region = Rect2(320, 0, 64, 64)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_gqmmt"]
+atlas = ExtResource("4_trceg")
+region = Rect2(384, 0, 64, 64)
+
+[sub_resource type="SpriteFrames" id="SpriteFrames_yc10j"]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_a8y0u")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_jkv2x")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_jbj1t")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_muem4")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_dp3eg")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_0ld40")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_gqmmt")
+}],
+"loop": true,
+"name": &"default",
+"speed": 5.0
+}]
+
+[sub_resource type="LabelSettings" id="LabelSettings_a8y0u"]
+font = ExtResource("10_choun")
+font_size = 27
 
 [node name="Main" type="Node2D"]
 material = SubResource("CanvasItemMaterial_o5qli")
@@ -29,7 +95,50 @@ minRoomHeightSize = 12
 maxRoomWidthSize = 40
 maxRoomHeightSize = 24
 
+[node name="Title" type="CanvasLayer" parent="."]
+
+[node name="Background" type="ColorRect" parent="Title"]
+offset_right = 1276.0
+offset_bottom = 763.0
+color = Color(0, 0, 0, 1)
+
+[node name="Image" type="Sprite2D" parent="Title"]
+position = Vector2(641, 300)
+scale = Vector2(5.01333, 3.72)
+texture = ExtResource("2_eb6dy")
+
+[node name="Text" type="Label" parent="Title"]
+offset_left = 110.0
+offset_top = 223.0
+offset_right = 1180.0
+offset_bottom = 398.0
+theme_override_fonts/font = ExtResource("10_choun")
+theme_override_font_sizes/font_size = 1
+text = "Boulder Dash 
+Dungeon"
+label_settings = SubResource("LabelSettings_trceg")
+horizontal_alignment = 1
+
+[node name="RockfordHead" type="AnimatedSprite2D" parent="Title"]
+texture_filter = 1
+position = Vector2(605, 468)
+scale = Vector2(2.5625, 2.07813)
+sprite_frames = SubResource("SpriteFrames_yc10j")
+autoplay = "default"
+frame = 5
+frame_progress = 0.0143074
+
+[node name="Label" type="Label" parent="Title"]
+offset_left = 389.0
+offset_top = 549.0
+offset_right = 839.0
+offset_bottom = 572.0
+text = "Press fire to start"
+label_settings = SubResource("LabelSettings_a8y0u")
+horizontal_alignment = 1
+
 [node name="Game" type="Node2D" parent="."]
+visible = false
 
 [node name="Camera2D" type="Camera2D" parent="Game"]
 limit_left = 0
@@ -68,6 +177,7 @@ stream = ExtResource("8_tipki")
 stream = ExtResource("9_85g3d")
 
 [node name="HUD" type="CanvasLayer" parent="."]
+visible = false
 script = ExtResource("10_ya4ey")
 
 [node name="ScoreLabel" type="Label" parent="HUD"]
@@ -79,3 +189,13 @@ theme_override_colors/font_shadow_color = Color(0.29219, 0.29219, 0.29219, 1)
 theme_override_fonts/font = ExtResource("10_choun")
 theme_override_font_sizes/font_size = 64
 text = "SCORE:"
+
+[node name="Overlay" type="CanvasLayer" parent="."]
+
+[node name="Fade" type="ColorRect" parent="Overlay"]
+top_level = true
+z_index = 3
+y_sort_enabled = true
+offset_right = 1275.0
+offset_bottom = 764.0
+color = Color(0, 0, 0, 1)

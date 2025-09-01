@@ -51,7 +51,9 @@ public partial class Main : Node
 
     private enum GameState
     {
+        gsBoot,
         gsInitialize,
+        gsFading,
         gsTitle,
         gsPlay,
         gsChangeRoom,
@@ -66,7 +68,7 @@ public partial class Main : Node
     private double idleInputDelayTime = 0;
 
     private bool inputEnabled = true;
-    private GameState gameState = GameState.gsInitialize;
+    private GameState gameState = GameState.gsBoot;
 
     // dungeon management
     [Export]
@@ -97,6 +99,8 @@ public partial class Main : Node
     // public DungeonRoom CurrentRoom { get { return dungeonRoom; } }
 
     private Timer gameOverTimer;
+    private GameState postFadeState;
+    private Tween fadeTween;
 
     public override void _Ready()
     {
@@ -170,17 +174,66 @@ public partial class Main : Node
         GetNode<AudioStreamPlayer2D>("Game/ExplosionAudio").Play();
     }
 
+    private void Fade(float value, Action finishAction)
+    {
+        if (fadeTween == null)
+        {
+            gameState = GameState.gsFading;
+
+            fadeTween = GetTree().CreateTween();
+
+            fadeTween.TweenProperty(GetNode<ColorRect>("Overlay/Fade"), "modulate:a", value, 2.5);
+            fadeTween.Finished += () =>
+            {
+                fadeTween.Stop();
+                fadeTween = null;
+
+                finishAction?.Invoke();
+            };
+        }
+    }
+
     private void GameLoopManagement(double delta)
     {
         switch (gameState)
         {
+            case GameState.gsBoot:
+                {
+                    Fade(0, () => gameState = GameState.gsTitle);
+                    break;
+                }
+
+            case GameState.gsFading:
+                {
+                    break;
+                }
+
+            case GameState.gsTitle:
+                {
+                    UserEvent userEvent = GetInputEvent(delta);
+                    if (userEvent == UserEvent.ueFire)
+                    {
+                        Fade(1, () =>
+                        {
+                            GetNode<CanvasLayer>("Title").Visible = false;
+                            gameState = GameState.gsInitialize;
+                        });
+                    }
+
+                    break;
+                }
+
             case GameState.gsInitialize:
                 {
-                    gameState = GameState.gsPlay;
+                    GetNode<Node2D>("Game").Visible = true;
+                    GetNode<CanvasLayer>("HUD").Visible = true;
+
                     if (UseTestLevel)
                         InitTestLevel();
                     else
                         InitializeDungeon();
+
+                    Fade(0, () => gameState = GameState.gsPlay);
 
                     break;
                 }
@@ -209,7 +262,7 @@ public partial class Main : Node
             case GameState.gsGameOver:
                 {
                     if (gameOverTimer == null)
-                        gameOverTimer = new Timer(0);
+                        gameOverTimer = new Timer(1);
 
                     if (gameOverTimer.IsElapsed(delta))
                     {
